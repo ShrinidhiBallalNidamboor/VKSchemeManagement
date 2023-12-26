@@ -176,7 +176,7 @@ function arrayToCsv(arrayData) {
 };
 
 async function graphData(seasonnumber) {
-  const user = await SchemUser.find({seasonnumber: seasonnumber}).select('paidArray unpaidArray agentcode');
+  const user = await SchemUser.find({seasonnumber: seasonnumber}).select('seasonnumber paidArray unpaidArray agentcode');
   var result = {paid: 0, unpaid: 0, length: 0, size: 0,
     xValues: [], dataset1: [], dataset2: []
   };
