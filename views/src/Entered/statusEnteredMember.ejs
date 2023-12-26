@@ -1,0 +1,42 @@
+<%- include('partials/header') %>
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <br>
+          <div class="row">
+            <div class="col-md-6 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Change Status Member: <%-user.registrationID%></h4>
+                  <form action="/statusMember" method="POST">
+                    <input style="display: None;" name="registrationID" value="<%-user.registrationID%>"/>
+                    <div class="form-group">
+                      <label for="Status">Role</label>
+                      <select name="status" class="form-control">
+                        <% if(user.status=="ACTIVE"){%>
+                        <option name="status" value="ACTIVE">ACTIVE</option>
+                        <option name="status" value="WIN">WIN</option>
+                        <option name="status" value="DELETE">DELETE</option>
+                        <%}%>
+                        <% if(user.status=="WIN"){%>
+                        <option name="status" value="WIN">WIN</option>
+                        <option name="status" value="ACTIVE">ACTIVE</option>
+                        <option name="status" value="DELETE">DELETE</option>
+                        <%}%>
+                        <% if(user.status=="DELETE"){%>
+                        <option name="status" value="DELETE">DELETE</option>
+                        <option name="status" value="ACTIVE">ACTIVE</option>
+                        <option name="status" value="WIN">WIN</option>
+                        <%}%>
+                      </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Update Status</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:../../partials/_footer.html -->
+<%- include('partials/footer') %>

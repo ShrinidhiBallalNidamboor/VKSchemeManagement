@@ -1,0 +1,158 @@
+<%- include('partials/header') %>
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <br>
+          <div class="row">
+            <%-message%>
+            <br>
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Filter Subscribers</h4>
+                  <div class="table-responsive">
+                    <form action="/report" method="POST">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>
+                            Last Date
+                          </th>
+                          <th>
+                            Season
+                          </th>
+                          <th>
+                            Membership No
+                          </th>
+                          <th>
+                            Member Name
+                          </th>
+                          <th>
+                            Agent Code
+                          </th>
+                          <th>
+                            Executive Code
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                            <td>
+                              <input type="date" class="form-control" placeholder="Date" name="date" value="<%-condition.date%>">
+                            </td>
+                            <td>
+                              <select name="seasonnumber" class="form-control">
+                                <%for(let i=0;i!=size;i++){%>
+                                <option name="seasonnumber" value="<%-i+1%>"><%-i+1%></option>
+                                <%}%>
+                              </select>
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="Registration ID" name="registrationID" value="<%-condition.registrationID%>">
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="Username" name="username" value="<%-condition.username%>">
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="Agent Code" name="agentcode" value="<%-condition.agentcode%>">
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="Execuitive Code" name="execuitivecode" value="<%-condition.execuitivecode%>">
+                            </td>
+                          </tr>
+                          <button type="submit" style="background-color: #1090CF;" class="btn btn-info">Search</button>
+                      </tbody>
+                    </table>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <form action="/download" method="POST">
+            <div class="btn-wrapper">
+              <input style="display: None;" name="date" value="<%-condition.date%>"/>
+              <input style="display: None;" name="username" value="<%-condition.username%>"/>
+              <input style="display: None;" name="registrationID" value="<%-condition.registrationID%>"/>
+              <input style="display: None;" name="agentID" value="<%-condition.agentID%>"/>
+              <input style="display: None;" name="execuitiveID" value="<%-condition.execuitiveID%>"/>
+              <button type="submit" class="btn btn-primary text-white me-0"><i class="icon-printer"></i> Download</button>
+            </div>
+            <br>
+            </form>
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Scheme Subscribers</h4>
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>
+                            Membership No
+                          </th>
+                          <th>
+                            Member Name
+                          </th>
+                          <th>
+                            Phone Number 1
+                          </th>
+                          <th>
+                            Phone Number 2
+                          </th>
+                          <th>
+                            Agent Code
+                          </th>
+                          <th>
+                            Executive Code
+                          </th>
+                          <th>
+                            Pending Payment (in Rs)
+                          </th>
+                          <th>
+                            Update Transaction
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <%for(let i=0;i!=user.length;i++){%>
+                          <tr>
+                            <td>
+                              <%-user[i].registrationID%>
+                            </td>
+                            <td>
+                              <%-user[i].username%>
+                            </td>
+                            <td>
+                              <%-user[i].phonenumber1%>
+                            </td>
+                            <td>
+                              <%-user[i].phonenumber2%>
+                            </td>
+                            <td>
+                              <%-user[i].agentcode%>
+                            </td>
+                            <td>
+                              <%-user[i].execuitivecode%>
+                            </td>
+                            <td>
+                              <%-pending[i]%>
+                            </td>
+                            <td>
+                              <form action="/transaction" method="POST"> 
+                                <input style="display: None;" name="update" value="<%-user[i]._id%>"/>
+                                <button style="background-color: #36c978;" class="btn btn-info">Transactions</button>
+                              </form>
+                            </td>
+                          </tr>
+                        <%}%>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:../../partials/_footer.html -->
+<%- include('partials/footer') %>

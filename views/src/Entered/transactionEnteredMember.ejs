@@ -1,0 +1,72 @@
+<%- include('partials/header') %>
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <br>
+          <div class="row">
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Transactions of Subscriber: <%-user.username%></h4>
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>
+                            Term
+                          </th>
+                          <th>
+                            Expected Date
+                          </th>
+                          <th>
+                            Payment Date
+                          </th>
+                          <th>
+                            Transaction ID
+                          </th>
+                          <th>
+                            Paid Amount (in Rs)
+                          </th>
+                          <th>
+                            Pending Amount (in Rs)
+                          </th>
+                        </tr>
+                      </thead>
+                      <form action="/transactionMember" method="POST">
+                        <input style="display: None;" name="identifier" value="<%-user._id%>"/>
+                        <tbody>
+                        <%for(let i=0;i!=user.transactionArray.length;i++){%>
+                          <tr>
+                            <td>
+                              <%-i+1%>
+                            </td>
+                            <td>
+                              <%-user.lastdateArray[i]%>
+                            </td>
+                            <td>
+                              <input type="text" name="paymentdateArray[<%-i%>]" placeholder="Transaction Date" value="<%-user.paymentdateArray[i]%>"/>
+                            </td>
+                            <td>
+                              <input type="text" name="transactionArray[<%-i%>]" placeholder="Transaction ID" value="<%-user.transactionArray[i]%>"/>
+                            </td>
+                            <td>
+                              <input type="Number" name="paidArray[<%-i%>]" value="<%-user.paidArray[i]%>"/>
+                            </td>
+                            <td>
+                              <input type="Number" name="unpaidArray[<%-i%>]" value="<%-user.unpaidArray[i]%>"/>
+                            </td>
+                          </tr>
+                        <%}%>
+                      </tbody>
+                      <button style="background-color: #1090CF;" class="btn btn-info">Update</button>
+                      </form>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:../../partials/_footer.html -->
+<%- include('partials/footer') %>

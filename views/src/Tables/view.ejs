@@ -1,0 +1,82 @@
+<%- include('partials/header') %>
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <br>
+          <div class="row">
+            <%-message%>
+            <form action="/view" method="POST"> 
+              <br>
+              <input style="width: 50%;" class="form-control" type="text" name="condition" placeholder="Membership No/Member Name/Phone Number">
+              <br>
+              <button style="background-color: #1090CF;" class="btn btn-info">Search</button>
+              <br><br>
+            </form>
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Scheme Subscribers</h4>
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>
+                            Membership No
+                          </th>
+                          <th>
+                            Member Name
+                          </th>
+                          <th>
+                            Phone Number 1
+                          </th>
+                          <th>
+                            Phone Number 2
+                          </th>
+                          <th>
+                            Update Button
+                          </th>
+                          <th>
+                            Update Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <%for(let i=0;i!=user.length;i++){%>
+                          <tr>
+                            <td>
+                              <%-user[i].registrationID%>
+                            </td>
+                            <td>
+                              <%-user[i].username%>
+                            </td>
+                            <td>
+                              <%-user[i].phonenumber1%>
+                            </td>
+                            <td>
+                              <%-user[i].phonenumber2%>
+                            </td>
+                            <td>
+                              <form action="/updatedata" method="POST"> 
+                                <input style="display: None;" name="update" value="<%-user[i]._id%>"/>
+                                <button style="background-color: #1090CF;" class="btn btn-info">Update</button>
+                              </form>
+                            </td>
+                            <td>
+                              <form action="/statusdata" method="POST"> 
+                                <input style="display: None;" name="update" value="<%-user[i]._id%>"/>
+                                <button class="btn btn-danger">Status</button>
+                              </form>
+                            </td>
+                          </tr>
+                        <%}%>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:../../partials/_footer.html -->
+<%- include('partials/footer') %>

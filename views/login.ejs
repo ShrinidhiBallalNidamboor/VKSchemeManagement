@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login and Register</title>
+  <link rel="shortcut icon" type="image/png" href="images/logo.jpg">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .loader-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh; /* Full height of the viewport */
+        width: 100vw; /* Full width of the viewport */
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+        z-index: 999;
+    }
+
+    .loader {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid rgb(139, 195, 232);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .container {
+      width: 400px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .tab:hover {
+      background-color: #f4f4f4;
+    }
+
+    .active-tab {
+      background-color: #ddd;
+    }
+
+    .form {
+      display: none;
+    }
+
+    .form.active-form {
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: rgb(32, 48, 121);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: rgb(60, 90, 224);
+    }
+
+    h1 {
+      color: rgb(60, 90, 224);
+    }
+  </style>
+</head>
+<body>
+<div class="loader-container" id="loader-container">
+    <div class="loader"></div>
+</div>
+<div class="container">
+  <h1><b>Sign Up<b></h1>
+  <div class="tabs">
+    <div class="tab active-tab" onclick="openTab('login')">Login</div>
+    <div class="tab" onclick="openTab('register')">Register</div>
+  </div>
+
+  <div class="form active-form" id="loginForm">
+    <h2>Login</h2>
+    <form action="/login" method="POST">
+      <input type="text" id="loginUsername" placeholder="Username" name= "username" required>
+      <input type="password" id="loginPassword" placeholder="Password" name= "password" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <div class="form" id="registerForm">
+    <h2>Register</h2>
+    <form action="/register" method="POST">
+      <input type="text" id="registerUsername" placeholder="Username" name= "username" required>
+      <input type="password" id="registerPassword" placeholder="Password" name="password" required>
+      <button type="submit">Register</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  window.addEventListener("load", function() {
+    // Show loader
+    document.getElementById('loader-container').style.display = 'flex'
+
+    // Hide the loader after 2 seconds
+    setTimeout(function() {
+        document.getElementById('loader-container').style.display = 'none';
+        // You can also update the content container here if needed
+    }, 1000);
+  });
+
+  function openTab(tabName) {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    if (tabName === 'login') {
+      loginForm.classList.add('active-form');
+      registerForm.classList.remove('active-form');
+      document.querySelector('.tab:nth-child(1)').classList.add('active-tab');
+      document.querySelector('.tab:nth-child(2)').classList.remove('active-tab');
+    } else {
+      loginForm.classList.remove('active-form');
+      registerForm.classList.add('active-form');
+      document.querySelector('.tab:nth-child(1)').classList.remove('active-tab');
+      document.querySelector('.tab:nth-child(2)').classList.add('active-tab');
+    }
+  }
+</script>
+
+</body>
+</html>

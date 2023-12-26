@@ -1,0 +1,46 @@
+<%- include('partials/header') %>
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <br>
+          <div class="row">
+            <div class="col-md-6 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Update Member: <%-user.registrationID%></h4>
+                  <form action="/updateMember" method="POST">
+                    <input style="display: None;" name="registrationID" value="<%-user.registrationID%>"/>
+                    <div class="form-group">
+                      <label for="Username">Username</label>
+                      <input type="text" class="form-control" placeholder="Username" name="username" value="<%-user.username%>" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="PhoneNumber">Phone Number 1</label>
+                      <input type="text" class="form-control" placeholder="Phone Number" name="phonenumber1" value="<%-user.phonenumber1%>" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="PhoneNumber">Phone Number 2</label>
+                      <input type="text" class="form-control" placeholder="Phone Number" name="phonenumber2" value="<%-user.phonenumber2%>" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="agentID">Agent Code</label>
+                      <input type="text" class="form-control" placeholder="Agent Code" name="agentcode" value="<%-user.agentcode%>">
+                    </div>
+                    <div class="form-group">
+                      <label for="agentID">Executive Code</label>
+                      <input type="text" class="form-control" placeholder="Executive Code" name="execuitivecode" value="<%-user.execuitivecode%>">
+                    </div>
+                    <div class="form-group">
+                      <label for="agentID">Season Number</label>
+                      <input type="number" class="form-control" placeholder="Season Number" name="seasonnumber" value="<%-user.seasonnumber%>" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary me-2">Update</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:../../partials/_footer.html -->
+<%- include('partials/footer') %>

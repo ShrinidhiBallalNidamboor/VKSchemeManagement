@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <br>
+          <div class="row">
+            <div class="col-md-6 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Update Executive: <%-execuitive.execuitivecode%></h4>
+                  <form action="/updateExecuitive" method="POST">
+                    <div class="form-group">
+                      <label for="Username">Username</label>
+                      <input type="text" class="form-control" placeholder="Username" name="username" value="<%-execuitive.username%>" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="execuitiveID">Phone Number</label>
+                      <input type="number" class="form-control" placeholder="Phone Number" name="phonenumber" value="<%-execuitive.phonenumber%>" required>
+                    </div>
+                    <input style="display: None;" name="execuitivecode" value="<%-execuitive.execuitivecode%>"/>
+                    <button type="submit" class="btn btn-primary me-2">Update</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:../../partials/_footer.html -->
+<%- include('partials/footer') %>
