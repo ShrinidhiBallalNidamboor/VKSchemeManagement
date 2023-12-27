@@ -463,10 +463,20 @@ app.post('/download', isAuthenticated, async (req, res) => {
           execuitivecode: user[i].execuitivecode,
           pending: unpaid
         };
-        result.push(temp)
+        result.push(temp);
       }
     }
   }
+  var temp = {
+    registrationID: 'Last Date',
+    username: date,
+    phonenumber1: '',
+    phonenumber2: '',
+    agentcode: '',
+    execuitivecode: '',
+    pending: ''
+  };
+  result.push(temp)
   try {
     await arrayToCsv(result);
     const fileStream = fs.createReadStream('output.csv');
@@ -816,7 +826,12 @@ app.post('/transactionMember', isAuthenticated, async (req, res) => {
   for(let i=0;i<user.transactionArray.length;i=i+1){
     transactionArray.push(req.body.transactionArray[i]);
     paymentdateArray.push(req.body.paymentdateArray[i]);
-    unpaidArray.push(Number(req.body.unpaidArray[i]));
+    if(user.unpaidArray[i]-Number(req.body.paidArray[i])>=0){
+      unpaidArray.push(user.unpaidArray[i]-Number(req.body.paidArray[i]));
+    }
+    else{
+      unpaidArray.push(user.unpaidArray[i]);
+    }
     paidArray.push(Number(req.body.paidArray[i]));
   }
   update = {

@@ -27,9 +27,6 @@
                           <th>
                             Paid Amount (in Rs)
                           </th>
-                          <th>
-                            Pending Amount (in Rs)
-                          </th>
                         </tr>
                       </thead>
                       <form action="/transactionMember" method="POST">
@@ -51,9 +48,6 @@
                             </td>
                             <td>
                               <input type="Number" name="paidArray[<%-i%>]" value="<%-user.paidArray[i]%>"/>
-                            </td>
-                            <td>
-                              <input type="Number" name="unpaidArray[<%-i%>]" value="<%-user.unpaidArray[i]%>"/>
                             </td>
                           </tr>
                         <%}%>

@@ -36,12 +36,22 @@
       </button>
     </div>
     <div>
-      <a class="navbar-brand brand-logo" href="/">
-        <img src="assets/images/logo.jpg" alt="logo" />
-      </a>
-      <a class="navbar-brand brand-logo-mini" href="/">
-        <img src="assets/images/logo-min.jpg" alt="logo" />
-      </a>
+      <%if(role=='admin'){%>
+        <a class="navbar-brand brand-logo" href="/">
+          <img src="assets/images/logo.jpg" alt="logo" />
+        </a>
+        <a class="navbar-brand brand-logo-mini" href="/">
+          <img src="assets/images/logo-min.jpg" alt="logo" />
+        </a>
+      <%}%>
+      <%if(role=='normal'){%>
+        <a class="navbar-brand brand-logo" href="/dashboard">
+          <img src="assets/images/logo.jpg" alt="logo" />
+        </a>
+        <a class="navbar-brand brand-logo-mini" href="/dashboard">
+          <img src="assets/images/logo-min.jpg" alt="logo" />
+        </a>
+      <%}%>
     </div>
   </div>
   <div class="navbar-menu-wrapper d-flex align-items-top" style="background-color: #1090CF;">

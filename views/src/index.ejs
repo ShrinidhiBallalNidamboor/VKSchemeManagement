@@ -50,6 +50,7 @@
                                   </div>
                                   <div>
                                     <div class="dropdown">
+                                      <%if(role=='admin'){%>
                                       <form action="/" method="POST">
                                         <div class="form-group">
                                           <select name="seasonnumber" class="form-control">
@@ -63,6 +64,22 @@
                                         </div>
                                         <button type="submit" style="background: #1090CF;" class="btn btn-info">Submit</button>
                                       </form>
+                                      <%}%>
+                                      <%if(role=='normal'){%>
+                                      <form action="/dashboard" method="POST">
+                                        <div class="form-group">
+                                          <select name="seasonnumber" class="form-control">
+                                            <option name="seasonnumber" value="<%-seasonnumber%>">Season <%-seasonnumber%></option>
+                                            <%for(let i=0;i!=seasons.length;i++){%>
+                                            <%if(i+1!=seasonnumber){%>
+                                            <option name="seasonnumber" value="<%-i+1%>">Season <%-i+1%></option>
+                                            <%}%>
+                                            <%}%>
+                                          </select>
+                                        </div>
+                                        <button type="submit" style="background: #1090CF;" class="btn btn-info">Submit</button>
+                                      </form>
+                                      <%}%>
                                     </div>
                                   </div>
                                 </div>
@@ -70,7 +87,7 @@
                                   <div class="me-3">
                                     <div id="marketingOverview-legend">
                                       <canvas width="20" height="20" style="display: inline-block; background: #0b3676;"></canvas>
-                                      <span style="font-size: 12px; vertical-align: top;">Amount Paid vs Agent Name</span>
+                                      <span style="font-size: 12px; vertical-align: top;">Amount Paid (in Rs) vs Agent Name</span>
                                       <br><br>
                                       <canvas width="20" height="20" style="display: inline-block; background: #1090CF;"></canvas>
                                       <span style="font-size: 12px; vertical-align: top;">Number of Members vs Agent Name</span>
