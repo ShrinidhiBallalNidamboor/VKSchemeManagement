@@ -42,8 +42,11 @@
                             </td>
                             <td>
                               <select name="seasonnumber" class="form-control">
+                                <option name="seasonnumber" value="<%-seasonnumber%>"><%-seasonnumber%></option>
                                 <%for(let i=0;i!=size;i++){%>
-                                <option name="seasonnumber" value="<%-i+1%>"><%-i+1%></option>
+                                <%if(seasonnumber!=i+1){%>
+                                  <option name="seasonnumber" value="<%-i+1%>"><%-i+1%></option>
+                                <%}%>
                                 <%}%>
                               </select>
                             </td>
@@ -70,11 +73,12 @@
             </div>
             <form action="/download" method="POST">
             <div class="btn-wrapper">
+              <input style="display: None;" name="seasonnumber" value="<%-seasonnumber%>"/>
               <input style="display: None;" name="date" value="<%-condition.date%>"/>
               <input style="display: None;" name="username" value="<%-condition.username%>"/>
               <input style="display: None;" name="registrationID" value="<%-condition.registrationID%>"/>
-              <input style="display: None;" name="agentID" value="<%-condition.agentID%>"/>
-              <input style="display: None;" name="execuitiveID" value="<%-condition.execuitiveID%>"/>
+              <input style="display: None;" name="agentcode" value="<%-condition.agentcode%>"/>
+              <input style="display: None;" name="execuitivecode" value="<%-condition.execuitivecode%>"/>
               <button type="submit" class="btn btn-primary text-white me-0"><i class="icon-printer"></i> Download</button>
             </div>
             <br>
@@ -84,6 +88,10 @@
                 <div class="card-body">
                   <h4 class="card-title">Scheme Subscribers</h4>
                   <div class="table-responsive">
+                    <div>
+                      <p class="statistics-title">Total Members</p>
+                      <h3 class="rate-percentage"><%-user.length%></h3>
+                    </div>
                     <table class="table table-striped">
                       <thead>
                         <tr>

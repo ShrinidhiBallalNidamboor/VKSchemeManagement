@@ -1,0 +1,57 @@
+<%- include('partials/header') %>
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <br>
+          <div class="row">
+            <form action="/execuitivenormal" method="POST"> 
+              <br>
+              <input style="width: 50%;" class="form-control" type="text" name="condition" placeholder="Execuitive Name/Phone Number/Execuitive Code">
+              <br>
+              <button style="background-color: #1090CF;" class="btn btn-info">Search</button>
+              <br><br>
+            </form>
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Executive</h4>
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>
+                            Executive Name
+                          </th>
+                          <th>
+                            Phone Number
+                          </th>
+                          <th>
+                            Executive Code
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <%for(let i=0;i!=execuitive.length;i++){%>
+                          <tr>
+                            <td>
+                              <%-execuitive[i].username%>
+                            </td>
+                            <td>
+                              <%-execuitive[i].phonenumber%>
+                            </td>
+                            <td>
+                              <%-execuitive[i].execuitivecode%>
+                            </td>
+                          </tr>
+                        <%}%>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:../../partials/_footer.html -->
+<%- include('partials/footer') %>

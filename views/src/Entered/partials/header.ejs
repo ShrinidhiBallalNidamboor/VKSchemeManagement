@@ -81,6 +81,7 @@
   <div class="container-fluid page-body-wrapper">
   <nav class="sidebar sidebar-offcanvas" id="sidebar" style="background-color: rgb(0, 0, 0);">
   <ul class="nav">
+    <%if(role=='admin'){%>
     <li class="nav-item">
       <a class="nav-link" href="/">
         <i class="mdi mdi-grid-large menu-icon" style="color: rgb(126, 189, 249);"></i>
@@ -96,7 +97,7 @@
       </a>
       <div class="collapse" id="icons">
         <ul class="nav flex-column sub-menu">
-          <li class="nav-item"> <a class="nav-link" href="/report">Report</a></li>
+          <li class="nav-item"> <a class="nav-link" href="/report">Pending Payment</a></li>
           <li class="nav-item"> <a class="nav-link" href="/view">Subscriber</a></li>
           <li class="nav-item"> <a class="nav-link" href="/agent">Agent</a></li>
           <li class="nav-item"> <a class="nav-link" href="/execuitive">Executive</a></li>
@@ -119,5 +120,29 @@
         </ul>
       </div>
     </li>
+    <%}%>
+    <%if(role=='normal'){%>
+    <li class="nav-item">
+      <a class="nav-link" href="/dashboard" style="background-color: black;">
+        <i class="mdi mdi-grid-large menu-icon" style="color: rgb(126, 189, 249);"></i>
+        <span class="menu-title" style="color: rgb(126, 189, 249);">Home</span>
+      </a>
+    </li>
+    <li class="nav-item nav-category" style="color: rgb(126, 189, 249);">Data</li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#icons" aria-expanded="false" aria-controls="icons">
+        <i class="menu-icon mdi mdi-layers-outline" style="color: rgb(126, 189, 249);"></i>
+        <span class="menu-title" style="color: rgb(126, 189, 249);">View</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="icons">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/viewnormal">Subscriber</a></li>
+          <li class="nav-item"> <a class="nav-link" href="/agentnormal">Agent</a></li>
+          <li class="nav-item"> <a class="nav-link" href="/execuitivenormal">Executive</a></li>
+        </ul>
+      </div>
+    </li>
+    <%}%>
   </ul>
 </nav>

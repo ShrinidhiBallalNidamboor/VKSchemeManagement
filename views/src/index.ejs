@@ -53,8 +53,11 @@
                                       <form action="/" method="POST">
                                         <div class="form-group">
                                           <select name="seasonnumber" class="form-control">
+                                            <option name="seasonnumber" value="<%-seasonnumber%>">Season <%-seasonnumber%></option>
                                             <%for(let i=0;i!=seasons.length;i++){%>
+                                            <%if(i+1!=seasonnumber){%>
                                             <option name="seasonnumber" value="<%-i+1%>">Season <%-i+1%></option>
+                                            <%}%>
                                             <%}%>
                                           </select>
                                         </div>

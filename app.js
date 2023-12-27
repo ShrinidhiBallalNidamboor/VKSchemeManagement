@@ -117,7 +117,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Middleware to check if the user is logged in
 const isAuthenticated = (req, res, next) => {
-  if (req.session && req.session.user) {
+  if (req.session && req.session.user && req.session.user.role=='admin') {
+    return next();
+  } else {
+    // Redirect to the login page if not authenticated
+    res.redirect('/login');
+  }
+};
+
+const Authenticated = (req, res, next) => {
+  if (req.session && req.session.user && req.session.user.role=='normal') {
     return next();
   } else {
     // Redirect to the login page if not authenticated
@@ -216,16 +225,33 @@ async function graphData(seasonnumber) {
 app.get('/', isAuthenticated, async (req, res) => {
   const result = await graphData(1);
   const seasons = await Season.find({});
-  res.render("src/index", {username:req.session.user.username, 
-    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons,
+  res.render("src/index", {username:req.session.user.username, role: req.session.user.role,
+    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons, seasonnumber: 1,
     dataset1: result.dataset1, dataset2: result.dataset2, xValues: result.xValues});
 });
 
 app.post('/', isAuthenticated, async (req, res) => {
   const result = await graphData(req.body.seasonnumber);
   const seasons = await Season.find({});
-  res.render("src/index", {username:req.session.user.username, 
-    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons,
+  res.render("src/index", {username:req.session.user.username, role: req.session.user.role,
+    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons, seasonnumber: req.body.seasonnumber,
+    dataset1: result.dataset1, dataset2: result.dataset2, xValues: result.xValues});
+});
+
+
+app.get('/dashboard', Authenticated, async (req, res) => {
+  const result = await graphData(1);
+  const seasons = await Season.find({});
+  res.render("src/index", {username:req.session.user.username, role: req.session.user.role,
+    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons, seasonnumber: 1,
+    dataset1: result.dataset1, dataset2: result.dataset2, xValues: result.xValues});
+});
+
+app.post('/dashboard', Authenticated, async (req, res) => {
+  const result = await graphData(req.body.seasonnumber);
+  const seasons = await Season.find({});
+  res.render("src/index", {username:req.session.user.username, role: req.session.user.role,
+    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons, seasonnumber: req.body.seasonnumber,
     dataset1: result.dataset1, dataset2: result.dataset2, xValues: result.xValues});
 });
 
@@ -394,7 +420,9 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
 });
 
 app.post('/download', isAuthenticated, async (req, res) => {
-  var user = await SchemUser.find({}); 
+  const season = await Season.find({});
+  const size = season.length;
+  var user = await SchemUser.find({seasonnumber: req.body.seasonnumber});
   var temp = getTime();
   var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
   if(req.body.date!=''){
@@ -406,8 +434,24 @@ app.post('/download', isAuthenticated, async (req, res) => {
     length = user.length
   }
   for(let i=0;i<length;i=i+1){
-    if(user[i].registrationID==req.body.registrationID || user[i].username==req.body.username ||
-      user[i].execuitivecode==req.body.execuitivecode || user[i].agentcode==req.body.agentcode){
+    if( req.body.registrationID!='' && user[i].registrationID.includes(req.body.registrationID) || req.body.username!='' && user[i].username.includes(req.body.username) ||
+    req.body.execuitivecode!='' && user[i].execuitivecode.includes(req.body.execuitivecode) || req.body.agentcode!='' && user[i].agentID.includes(req.body.agentcode)){
+      let unpaid = unpaidMoneyDate(user[i], date);
+      if(unpaid!=0){
+        let temp = {
+          registrationID: user[i].registrationID,
+          username: user[i].username,
+          phonenumber1: user[i].phonenumber1,
+          phonenumber2: user[i].phonenumber2,
+          agentcode: user[i].agentcode,
+          execuitivecode: user[i].execuitivecode,
+          pending: unpaid
+        };
+        result.push(temp)
+      }
+    }
+    else if(req.body.registrationID=='' && req.body.username=='' && 
+      req.body.execuitivecode=='' && req.body.agentcode==''){
       let unpaid = unpaidMoneyDate(user[i], date);
       if(unpaid!=0){
         let temp = {
@@ -437,22 +481,76 @@ app.post('/download', isAuthenticated, async (req, res) => {
 });
 
 
+app.get('/viewnormal', Authenticated, async (req, res) => {
+  const user = await SchemUser.find({}).select('_id registrationID username phonenumber1 phonenumber2');
+  res.render("src/Tables/viewnormal", {username:req.session.user.username, role: req.session.user.role, user: user});
+});
+
+app.get('/agentnormal', Authenticated, async (req, res) => {
+  const agent = await Agent.find({});
+  res.render("src/Tables/agentnormal", {username:req.session.user.username, role: req.session.user.role, agent: agent});
+});
+
+app.get('/execuitivenormal', Authenticated, async (req, res) => {
+  const execuitive = await Execuitive.find({});
+  res.render("src/Tables/execuitivenormal", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive});
+});
+
+
+app.post('/viewnormal', Authenticated, async (req, res) => {
+  var user = await SchemUser.find({$or: [
+      { registrationID: { $regex: req.body.condition} },  
+      { username: { $regex: req.body.condition} },
+      { phonenumber1: { $regex: req.body.condition} },
+      { phonenumber2: { $regex: req.body.condition} }
+    ]});
+    if(req.body.condition==''){
+      user = await SchemUser.find({});
+    }
+  res.render("src/Tables/viewnormal", {username:req.session.user.username, role: req.session.user.role, user: user});
+});
+
+app.post('/agentnormal', Authenticated, async (req, res) => {
+  var agent = await Agent.find({$or: [
+      { username: { $regex: req.body.condition} },
+      { agentcode: { $regex: req.body.condition} },  
+      { phonenumber: { $regex: req.body.condition} }
+    ]});
+    if(req.body.condition==''){
+      agent = await Agent.find({});
+    }
+  res.render("src/Tables/agentnormal", {username:req.session.user.username, role: req.session.user.role, agent: agent});
+});
+
+app.post('/execuitivenormal', Authenticated, async (req, res) => {
+  var execuitive = await Execuitive.find({$or: [
+      { username: { $regex: req.body.condition } },
+      { execuitivecode: { $regex: req.body.condition} },  
+      { phonenumber: { $regex: req.body.condition} }
+    ]});
+    if(req.body.condition==''){
+      execuitive = await Execuitive.find({});
+    }
+  res.render("src/Tables/execuitivenormal", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive});
+});
+
+
 app.get('/view', isAuthenticated, async (req, res) => {
   const user = await SchemUser.find({}).select('_id registrationID username phonenumber1 phonenumber2');
   var message = "<div></div>"
-  res.render("src/Tables/view", {username:req.session.user.username, user: user, message: message});
+  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, message: message});
 });
 
 app.get('/viewSuccess', isAuthenticated, async (req, res) => {
   const user = await SchemUser.find({}).select('_id registrationID username phonenumber1 phonenumber2');
   var message = success
-  res.render("src/Tables/view", {username:req.session.user.username, user: user, message: message});
+  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, message: message});
 });
 
 app.get('/viewFailure', isAuthenticated, async (req, res) => {
   const user = await SchemUser.find({}).select('_id registrationID username phonenumber1 phonenumber2');
   var message = failure
-  res.render("src/Tables/view", {username:req.session.user.username, user: user, message: message});
+  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, message: message});
 });
 
 
@@ -483,7 +581,7 @@ app.get('/report', isAuthenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, 
+  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: 1, role: req.session.user.role,
     message: message, pending: pending, condition: condition, size: size});
 });
 
@@ -514,7 +612,7 @@ app.get('/reportSuccess', isAuthenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, 
+  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: 1, role: req.session.user.role,
     message: message, pending:pending, condition: condition, size: size});
 });
 
@@ -545,7 +643,7 @@ app.get('/reportFailure', isAuthenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, 
+  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: 1, role: req.session.user.role,
     message: message, pending: pending, condition: condition, size: size});
 });
 
@@ -553,38 +651,38 @@ app.get('/reportFailure', isAuthenticated, async (req, res) => {
 app.get('/agent', isAuthenticated, async (req, res) => {
   const agent = await Agent.find({});
   var message = "<div></div>"
-  res.render("src/Tables/agent", {username:req.session.user.username, agent: agent, message: message});
+  res.render("src/Tables/agent", {username:req.session.user.username, role: req.session.user.role, agent: agent, message: message});
 });
 
 app.get('/agentSuccess', isAuthenticated, async (req, res) => {
   const agent = await Agent.find({});
   var message = success
-  res.render("src/Tables/agent", {username:req.session.user.username, agent: agent, message: message});
+  res.render("src/Tables/agent", {username:req.session.user.username, role: req.session.user.role, agent: agent, message: message});
 });
 
 app.get('/agentFailure', isAuthenticated, async (req, res) => {
   const agent = await Agent.find({});
   var message = failure
-  res.render("src/Tables/agent", {username:req.session.user.username, agent: agent, message: message});
+  res.render("src/Tables/agent", {username:req.session.user.username, role: req.session.user.role, agent: agent, message: message});
 });
 
 
 app.get('/execuitive', isAuthenticated, async (req, res) => {
   const execuitive = await Execuitive.find({});
   var message = "<div></div>"
-  res.render("src/Tables/execuitive", {username:req.session.user.username, execuitive: execuitive, message: message});
+  res.render("src/Tables/execuitive", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive, message: message});
 });
 
 app.get('/execuitiveSuccess', isAuthenticated, async (req, res) => {
   const execuitive = await Execuitive.find({});
   var message = success
-  res.render("src/Tables/execuitive", {username:req.session.user.username, execuitive: execuitive, message: message});
+  res.render("src/Tables/execuitive", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive, message: message});
 });
 
 app.get('/execuitiveFailure', isAuthenticated, async (req, res) => {
   const execuitive = await Execuitive.find({});
   var message = failure
-  res.render("src/Tables/execuitive", {username:req.session.user.username, execuitive: execuitive, message: message});
+  res.render("src/Tables/execuitive", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive, message: message});
 });
 
 
@@ -598,7 +696,7 @@ app.post('/view', isAuthenticated, async (req, res) => {
     if(req.body.condition==''){
       user = await SchemUser.find({});
     }
-  res.render("src/Tables/view", {username:req.session.user.username, user: user, message: "<div></div>"});
+  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, message: "<div></div>"});
 });
 
 app.post('/report', isAuthenticated, async (req, res) => {
@@ -641,7 +739,7 @@ app.post('/report', isAuthenticated, async (req, res) => {
       }
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, 
+  res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.body.seasonnumber,
     message: "<div></div>", pending: pending, condition: condition, size: size});
 });
 
@@ -654,7 +752,7 @@ app.post('/agent', isAuthenticated, async (req, res) => {
     if(req.body.condition==''){
       agent = await Agent.find({});
     }
-  res.render("src/Tables/agent", {username:req.session.user.username, agent: agent, message: "<div></div>"});
+  res.render("src/Tables/agent", {username:req.session.user.username, role: req.session.user.role, agent: agent, message: "<div></div>"});
 });
 
 app.post('/execuitive', isAuthenticated, async (req, res) => {
@@ -666,46 +764,46 @@ app.post('/execuitive', isAuthenticated, async (req, res) => {
     if(req.body.condition==''){
       execuitive = await Execuitive.find({});
     }
-  res.render("src/Tables/execuitive", {username:req.session.user.username, execuitive: execuitive, message: "<div></div>"});
+  res.render("src/Tables/execuitive", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive, message: "<div></div>"});
 });
 
 
 app.post('/updatedata', isAuthenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
-  res.render("src/Entered/updateEnteredMember", {username:req.session.user.username, user: user});
+  res.render("src/Entered/updateEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user});
 });
 
 app.post('/agentdata', isAuthenticated, async (req, res) => {
   const agent = await Agent.findOne({_id: req.body.update});
-  res.render("src/Entered/updateEnteredAgent", {username:req.session.user.username, agent: agent});
+  res.render("src/Entered/updateEnteredAgent", {username:req.session.user.username, role: req.session.user.role, agent: agent});
 });
 
 app.post('/execuitivedata', isAuthenticated, async (req, res) => {
   const execuitive = await Execuitive.findOne({_id: req.body.update});
-  res.render("src/Entered/updateEnteredExecuitive", {username:req.session.user.username, execuitive: execuitive});
+  res.render("src/Entered/updateEnteredExecuitive", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive});
 });
 
 app.post('/transaction', isAuthenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
-  res.render("src/Entered/transactionEnteredMember", {username:req.session.user.username, user: user});
+  res.render("src/Entered/transactionEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user});
 });
 
 app.post('/statusdata', isAuthenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
-  res.render("src/Entered/statusEnteredMember", {username:req.session.user.username, user: user});
+  res.render("src/Entered/statusEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user});
 });
 
 
 app.get('/addMember', isAuthenticated, (req, res) => {
-  res.render("src/Forms/addMember", {username:req.session.user.username});
+  res.render("src/Forms/addMember", {username:req.session.user.username, role: req.session.user.role});
 });
 
 app.get('/addAgent', isAuthenticated, (req, res) => {
-  res.render("src/Forms/addAgent", {username:req.session.user.username});
+  res.render("src/Forms/addAgent", {username:req.session.user.username, role: req.session.user.role});
 });
 
 app.get('/addExecuitive', isAuthenticated, (req, res) => {
-  res.render("src/Forms/addExecuitive", {username:req.session.user.username});
+  res.render("src/Forms/addExecuitive", {username:req.session.user.username, role: req.session.user.role});
 });
 
 
@@ -898,21 +996,27 @@ app.get("/login", function (req, res) {
     res.render("login");
 });
 
+app.get('/register', isAuthenticated, async (req, res) => {
+  res.render("register");
+});
+
 // Login endpoint
 app.post('/login', async (req, res) => {
   const username = req.body.username; 
-  const password = await bcrypt.hash(req.body.password, 12);
-
-  const user = await User.findOne({ username});
+  const password = req.body.password;
+  const user = await User.findOne({ username: username});
   if (user) {
     // Store user information in session
     isValidPassword = await bcrypt.compare(password, user.password);
     if(isValidPassword){
-      res.redirect("/login");
+      req.session.user = user;
+      if(user.role=='admin')
+        res.redirect("/");
+      else
+        res.redirect("/dashboard");
     }
     else{
-      req.session.user = user;
-      res.redirect("/");
+      res.redirect("/login");
     }
   } else {
     res.redirect("/login")
@@ -934,22 +1038,21 @@ app.get('/logout', isAuthenticated, (req, res) => {
 });
 
 // Register endpoint
-app.post('/register', async (req, res) => {
+app.post('/register', isAuthenticated, async (req, res) => {
   const username = req.body.username
   const password = await bcrypt.hash(req.body.password, 12);
-
-  const user = await User.findOne({ username });
+  const role = req.body.role;
+  const user = await User.findOne({ username: username });
   if (user) {
     console.log('User already exists');
   }
   else{
     // Create a new user
-    const newUser = new User({username, password});
+    const newUser = new User({username, password, role});
     await newUser.save();
-
     console.log('User registered successfully');
   }
-  res.redirect("/login");
+  res.redirect("/");
 });
 
 // Start the server
