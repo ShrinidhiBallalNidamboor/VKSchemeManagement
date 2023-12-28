@@ -43,7 +43,11 @@ mongoose.set('useFindAndModify', false);
  but the difference here is thsi schema or the patterm=n can be use for creation 
  numerous tables or in this case a collection*/
 
-const userSchema = new mongoose.Schema({
+ const transactionSchema = new mongoose.Schema({
+  transactionID: String
+});
+
+ const userSchema = new mongoose.Schema({
   username: String,
   password: String,
   role: String
@@ -102,6 +106,7 @@ const SchemUser = new mongoose.model("SchemUser", schemuserSchema);
 const Agent = new mongoose.model("Agent", agentSchema);
 const Execuitive = new mongoose.model("Execuitive", execuitiveSchema);
 const Season = new mongoose.model("Season", seasonSchema);
+const Transaction = new mongoose.model("Transaction", transactionSchema);
 
 // Set up session middleware
 app.use(session({
@@ -131,6 +136,41 @@ const Authenticated = (req, res, next) => {
   } else {
     // Redirect to the login page if not authenticated
     res.redirect('/login');
+  }
+};
+
+async function uniqueTransactionID(transactionArray){
+  let length = transactionArray.length;
+  let transaction = await Transaction.find({});
+  let size = 0;
+  if(transaction!=null){
+    size = transaction.length;
+  }
+  for(let i=0;i<length;i=i+1){
+    for(let j=0;j<length;j=j+1){
+      if(i!=j && transactionArray[i]!='' && transactionArray[i]==transactionArray[j]){
+        return false;
+      }
+    }
+  }
+  for(let i=0;i<length;i=i+1){
+    if(transactionArray[i]!=''){
+      for(let j=0;j<size;j=j+1){
+        if(transactionArray[i]==transaction[j].transactionID){
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+};
+
+async function insertTransactionID(transactionArray){
+  let length = transactionArray.length;
+  for(let i=0;i<length;i=i+1){
+    if(transactionArray[i]!=''){
+      await Transaction.insertMany([{transactionID: transactionArray[i]}]);
+    }
   }
 };
 
@@ -223,10 +263,10 @@ async function graphData(seasonnumber) {
 
 
 app.get('/', isAuthenticated, async (req, res) => {
-  const result = await graphData(1);
   const seasons = await Season.find({});
+  const result = await graphData(seasons.length);
   res.render("src/index", {username:req.session.user.username, role: req.session.user.role,
-    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons, seasonnumber: 1,
+    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons, seasonnumber: seasons.length,
     dataset1: result.dataset1, dataset2: result.dataset2, xValues: result.xValues});
 });
 
@@ -240,10 +280,10 @@ app.post('/', isAuthenticated, async (req, res) => {
 
 
 app.get('/dashboard', Authenticated, async (req, res) => {
-  const result = await graphData(1);
   const seasons = await Season.find({});
+  const result = await graphData(seasons.length);
   res.render("src/index", {username:req.session.user.username, role: req.session.user.role,
-    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons, seasonnumber: 1,
+    paid: result.paid, unpaid: result.unpaid, length: result.length, seasons: seasons, seasonnumber: seasons.length,
     dataset1: result.dataset1, dataset2: result.dataset2, xValues: result.xValues});
 });
 
@@ -288,6 +328,7 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
   const csvFilePath = 'CSVFiles/MembershipDataCSV.csv';
   let date = getTime();
   date = String(date[2])+"-"+String(date[1])+"-"+String(date[0]);
+  let index = 1;
   fs.createReadStream(csvFilePath)
   .pipe(csv())
   .on('data', async (row) => {
@@ -411,9 +452,17 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
       else
         data.transactionArray.push(null);
     }
-    await SchemUser.insertMany([data]);
+    let valid = await uniqueTransactionID(data.transactionArray);
+    if(valid){
+      await insertTransactionID(data.transactionArray);
+      await SchemUser.insertMany([data]);
+    }
+    else{
+      console.log("Entry ", index, " skipped");
+    }
+    index = index + 1
   })
-  .on('end', () => {
+  .on('end', async () => {
     console.log('CSV file successfully processed');
     res.redirect("/");
   });
@@ -565,9 +614,9 @@ app.get('/viewFailure', isAuthenticated, async (req, res) => {
 
 
 app.get('/report', isAuthenticated, async (req, res) => {
-  const user = await SchemUser.find({});
   const season = await Season.find({});
   const size = season.length;
+  const user = await SchemUser.find({seasonnumber: size});
   var message = "<div></div>";
   var temp = getTime();
   var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
@@ -591,14 +640,14 @@ app.get('/report', isAuthenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: 1, role: req.session.user.role,
+  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: size, role: req.session.user.role,
     message: message, pending: pending, condition: condition, size: size});
 });
 
 app.get('/reportSuccess', isAuthenticated, async (req, res) => {
-  const user = await SchemUser.find({});
   const season = await Season.find({});
   const size = season.length;
+  const user = await SchemUser.find({seasonnumber: size});
   var message = success;
   var temp = getTime();
   var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
@@ -622,14 +671,14 @@ app.get('/reportSuccess', isAuthenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: 1, role: req.session.user.role,
+  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: size, role: req.session.user.role,
     message: message, pending:pending, condition: condition, size: size});
 });
 
 app.get('/reportFailure', isAuthenticated, async (req, res) => {
-  const user = await SchemUser.find({});
   const season = await Season.find({});
   const size = season.length;
+  const user = await SchemUser.find({seasonnumber: size});
   var message = failure;
   var temp = getTime();
   var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
@@ -653,7 +702,7 @@ app.get('/reportFailure', isAuthenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: 1, role: req.session.user.role,
+  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: size, role: req.session.user.role,
     message: message, pending: pending, condition: condition, size: size});
 });
 
@@ -819,6 +868,20 @@ app.get('/addExecuitive', isAuthenticated, (req, res) => {
 
 app.post('/transactionMember', isAuthenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.identifier});
+  let array = []
+  for(let i=0;i<req.body.transactionArray.length;i++){
+    if(req.body.transactionArray[i]!=user.transactionArray[i]){
+      array.push(req.body.transactionArray[i]);
+    }
+  }
+  let valid = await uniqueTransactionID(array);
+  if(valid){
+    await insertTransactionID(array);
+  }
+  else{
+    res.redirect("/reportFailure");
+    return;
+  }
   var transactionArray = []
   var paymentdateArray = []
   var unpaidArray = []

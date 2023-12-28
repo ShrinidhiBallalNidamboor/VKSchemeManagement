@@ -7,6 +7,10 @@
             <div class="col-md-6 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
+                  <form action="/agent" method="GET">
+                    <button type="submit" class="btn btn-primary" style="background-color: rgb(59, 58, 58);">Back</button>
+                  </form>
+                  <br>
                   <h4 class="card-title">Update Agent: <%-agent.agentcode%></h4>
                   <form action="/updateAgent" method="POST">
                     <div class="form-group">

@@ -7,6 +7,10 @@
             <div class="col-md-6 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
+                  <form action="/view" method="GET">
+                    <button type="submit" class="btn btn-primary" style="background-color: rgb(59, 58, 58);">Back</button>
+                  </form>
+                  <br>
                   <h4 class="card-title">Update Member: <%-user.registrationID%></h4>
                   <form action="/updateMember" method="POST">
                     <input style="display: None;" name="registrationID" value="<%-user.registrationID%>"/>
@@ -20,7 +24,7 @@
                     </div>
                     <div class="form-group">
                       <label for="PhoneNumber">Phone Number 2</label>
-                      <input type="text" class="form-control" placeholder="Phone Number" name="phonenumber2" value="<%-user.phonenumber2%>" required>
+                      <input type="text" class="form-control" placeholder="Phone Number" name="phonenumber2" value="<%-user.phonenumber2%>">
                     </div>
                     <div class="form-group">
                       <label for="agentID">Agent Code</label>
