@@ -381,61 +381,7 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
     let season = await Season.findOne({seasonnumber: row.seasonnumber});
     let amount = season.amount;
     let startdate = season.startdate;
-    if(length>=1){
-      string = startdate.split("-");
-      string = string[0]+"-"+String((Number(string[1])-1+0)%12+1)+"-"+String(Number(string[2])+Math.ceil((Number(string[1])+0)/12)-1);
-      data.lastdateArray.push(string);
-      data.paymentdateArray.push(row[`${1}st Payment Date`]);
-      if(row[`${1}st Amount`]=='' && row.status=='ACTIVE'){
-        data.unpaidArray.push(amount);
-        data.paidArray.push(0);
-      }
-      else{
-        data.unpaidArray.push(0);
-        data.paidArray.push(Number(row[`${1}st Amount`]));
-      }
-      if(row[`${1}st Transaction id`]!='')
-        data.transactionArray.push(row[`${1}st Transaction id`]);
-      else
-        data.transactionArray.push(null);
-    }
-    if(length>=2){
-      string = startdate.split("-");
-      string = string[0]+"-"+String((Number(string[1])-1+1)%12+1)+"-"+String(Number(string[2])+Math.ceil((Number(string[1])+1)/12)-1);
-      data.lastdateArray.push(string);
-      data.paymentdateArray.push(row[`${2}nd Payment Date`]);
-      if(row[`${2}nd Amount`]=='' && row.status=='ACTIVE'){
-        data.unpaidArray.push(amount);
-        data.paidArray.push(0);
-      }
-      else{
-        data.unpaidArray.push(0);
-        data.paidArray.push(Number(row[`${2}nd Amount`]));
-      }
-      if(row[`${1}st Transaction id`]!='')
-        data.transactionArray.push(row[`${2}nd Transaction id`]);
-      else
-        data.transactionArray.push(null);
-    }
-    if(length>=3){
-      string = startdate.split("-");
-      string = string[0]+"-"+String((Number(string[1])-1+2)%12+1)+"-"+String(Number(string[2])+Math.ceil((Number(string[1])+2)/12)-1);
-      data.lastdateArray.push(string);
-      data.paymentdateArray.push(row[`${3}rd Payment Date`]);
-      if(row[`${3}rd Amount`]=='' && row.status=='ACTIVE'){
-        data.unpaidArray.push(amount);
-        data.paidArray.push(0);
-      }
-      else{
-        data.unpaidArray.push(0);
-        data.paidArray.push(Number(row[`${3}rd Amount`]));
-      }
-      if(row[`${1}st Transaction id`]!='')
-        data.transactionArray.push(row[`${3}rd Transaction id`]);
-      else
-        data.transactionArray.push(null);
-    }
-    for(let i=4;i<=length;i=i+1){
+    for(let i=1;i<=length;i=i+1){
       string = startdate.split("-");
       if((Number(string[1])-1+i-1)%12+1==1){
         string[2]=String(Number(string[2])+1);
@@ -443,7 +389,7 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
       string = string[0]+"-"+String((Number(string[1])-1+i-1)%12+1)+"-"+String(Number(string[2])+Math.ceil((Number(string[1])+i-1)/12)-1);
       data.lastdateArray.push(string);
       data.paymentdateArray.push(row[`${i}th Payment Date`]);
-      if(row[`${i}th Amount`]==''){
+      if(row[`${i}th Amount`]=='' && row.status=='ACTIVE'){
         data.unpaidArray.push(amount);
         data.paidArray.push(0);
       }
