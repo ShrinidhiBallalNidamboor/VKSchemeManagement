@@ -383,9 +383,6 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
     let startdate = season.startdate;
     for(let i=1;i<=length;i=i+1){
       string = startdate.split("-");
-      if((Number(string[1])-1+i-1)%12+1==1){
-        string[2]=String(Number(string[2])+1);
-      }
       string = string[0]+"-"+String((Number(string[1])-1+i-1)%12+1)+"-"+String(Number(string[2])+Math.ceil((Number(string[1])+i-1)/12)-1);
       data.lastdateArray.push(string);
       data.paymentdateArray.push(row[`${i}th Payment Date`]);
