@@ -251,11 +251,15 @@ async function graphData(seasonnumber) {
       agentCount[user[i].agentcode] += 1;
     }
   }
-  for(let i=0;i<result.length;i=i+1){
-    if(user[i].agentcode!=null){
-      result.xValues.push(user[i].agentcode)
-      result.dataset1.push(agentAmount[user[i].agentcode])
-      result.dataset2.push(agentCount[user[i].agentcode])
+  for (let key in agentAmount) {
+    if (agentAmount.hasOwnProperty(key)) {
+      result.xValues.push(key)
+      result.dataset1.push(agentAmount[key])
+    }
+  }
+  for (let key in agentCount) {
+    if (agentCount.hasOwnProperty(key)) {
+      result.dataset2.push(agentCount[key])
     }
   }
   return result;
