@@ -210,10 +210,10 @@ function unpaidMoneyDate(user, date){
     let a = [Number(value1[2]), Number(value1[1]), Number(value1[0])];
     let b = [Number(value2[0]), Number(value2[1]), Number(value2[2])];
     let c = [Number(value1[2])+Math.floor(Number(value1[1])/12), Number(value1[1])%12+1, Number(value1[0])];
-    if(user.unpaidArray[j]!=0 && a<=b){
+    if(a<=b){
       unpaid += user.unpaidArray[j];
     }
-    else if(user.unpaidArray[j]!=0 && c==b){
+    else{
       unpaid += user.unpaidArray[j];
       break;
     }
