@@ -240,6 +240,18 @@ function arrayToCsv(arrayData) {
   return csvWriter.writeRecords(arrayData);
 };
 
+function arrayToCsvSubscriber(arrayData) {
+  const csvFilePath = "output.csv";
+  const csvHeader = ["username", "phonenumber1", "phonenumber2",
+  "registrationID", "status", "statusdate", "seasonnumber",
+  "agentcode", "execuitivecode", "transactionArray", "paymentdateArray", "paidArray"];
+  const csvWriter = createCsvWriter({
+    path: csvFilePath,
+    header: csvHeader.map(header => ({ id: header, title: header }))
+  });
+  return csvWriter.writeRecords(arrayData);
+};
+
 async function graphData(seasonnumber) {
   const user = await SchemUser.find({seasonnumber: seasonnumber}).select('seasonnumber paidArray unpaidArray agentcode');
   var result = {paid: 0, unpaid: 0, length: 0, size: 0,
@@ -502,6 +514,38 @@ app.post('/download', isAuthenticated, async (req, res) => {
   }
 });
 
+app.post('/downloadSubscriber', isAuthenticated, async (req, res) => {
+  const season = await Season.find({});
+  const size = season.length;
+  var search = [];
+  search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.body.seasonnumber });
+  search.push({ username: { $regex: req.body.username}, seasonnumber: req.body.seasonnumber });
+  if(req.body.phonenumber!=''){
+    search.push({ $or: [{phonenumber1: { $regex: req.body.phonenumber}, seasonnumber: req.body.seasonnumber },
+      {phonenumber2: { $regex: req.body.phonenumber}, seasonnumber: req.body.seasonnumber }
+    ]});
+  }
+  if(req.body.agentcode!=''){
+    search.push({ agentcode: { $regex: req.body.agentcode}, seasonnumber: req.body.seasonnumber });
+  }
+  if(req.body.execuitivecode!=''){
+    search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.body.seasonnumber });
+  }
+  search.push({ status: req.body.status, seasonnumber: req.body.seasonnumber });
+  var user = await SchemUser.find({$and: search}).select("username phonenumber1 phonenumber2 registrationID status statusdate seasonnumber agentcode execuitivecode transactionArray paymentdateArray paidArray").sort({ registrationID: 1 });
+  try {
+    await arrayToCsvSubscriber(user);
+    const fileStream = fs.createReadStream('output.csv');
+    const csvContent = fs.readFileSync('output.csv', 'utf8');
+    res.setHeader('Content-Type', 'text/csv');
+    res.send(csvContent);
+  } catch (error) {
+    console.error('Error writing CSV file:', error);
+    res.redirect("/report");
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 app.get('/viewnormal', Authenticated, async (req, res) => {
   const user = await SchemUser.find({}).select('_id registrationID username phonenumber1 phonenumber2').sort({ registrationID: 1 });
@@ -558,23 +602,49 @@ app.post('/execuitivenormal', Authenticated, async (req, res) => {
 
 
 app.get('/view', isAuthenticated, async (req, res) => {
-  const user = await SchemUser.find({}).select('_id registrationID username phonenumber1 phonenumber2').sort({ registrationID: 1 });
+  var condition = {
+    username: '',
+    registrationID: '',
+    phonenumber: '',
+    status: 'ACTIVE',
+    agentcode: '',
+    execuitivecode: ''
+  };
+  const season =  await Season.find({});
+  const user = await SchemUser.find({seasonnumber: season.length, status: "ACTIVE"}).select('_id registrationID username phonenumber1 phonenumber2 agentcode execuitivecode status').sort({ registrationID: 1 });
   var message = "<div></div>"
-  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, message: message});
+  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, condition: condition, seasonnumber: season.length, size: season.length, message: message});
 });
 
 app.get('/viewSuccess', isAuthenticated, async (req, res) => {
-  const user = await SchemUser.find({}).select('_id registrationID username phonenumber1 phonenumber2').sort({ registrationID: 1 });
-  var message = success
-  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, message: message});
+  var condition = {
+    username: '',
+    registrationID: '',
+    phonenumber: '',
+    status: 'ACTIVE',
+    agentcode: '',
+    execuitivecode: ''
+  };
+  const season =  await Season.find({});
+  const user = await SchemUser.find({seasonnumber: season.length, status: "ACTIVE"}).select('_id registrationID username phonenumber1 phonenumber2 agentcode execuitivecode status').sort({ registrationID: 1 });
+  var message = success;
+  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, condition: condition, seasonnumber: season.length, size: season.length, message: message});
 });
 
 app.get('/viewFailure', isAuthenticated, async (req, res) => {
-  const user = await SchemUser.find({}).select('_id registrationID username phonenumber1 phonenumber2').sort({ registrationID: 1 });
-  var message = failure
-  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, message: message});
+  var condition = {
+    username: '',
+    registrationID: '',
+    phonenumber: '',
+    status: 'ACTIVE',
+    agentcode: '',
+    execuitivecode: ''
+  };
+  const season =  await Season.find({});
+  const user = await SchemUser.find({seasonnumber: season.length, status: "ACTIVE"}).select('_id registrationID username phonenumber1 phonenumber2 agentcode execuitivecode status').sort({ registrationID: 1 });
+  var message = failure;
+  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, condition: condition, seasonnumber: season.length, size: season.length, message: message});
 });
-
 
 app.get('/report', isAuthenticated, async (req, res) => {
   const season = await Season.find({});
@@ -709,16 +779,32 @@ app.get('/execuitiveFailure', isAuthenticated, async (req, res) => {
 
 
 app.post('/view', isAuthenticated, async (req, res) => {
-  var user = await SchemUser.find({$or: [
-      { registrationID: { $regex: req.body.condition} },  
-      { username: { $regex: req.body.condition} },
-      { phonenumber1: { $regex: req.body.condition} },
-      { phonenumber2: { $regex: req.body.condition} }
-    ]}).sort({ registrationID: 1 });
-    if(req.body.condition==''){
-      user = await SchemUser.find({});
-    }
-  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, message: "<div></div>"});
+  var condition = {
+    username: req.body.username,
+    registrationID: req.body.registrationID,
+    phonenumber: req.body.phonenumber,
+    status: req.body.status,
+    agentcode: req.body.agentcode,
+    execuitivecode: req.body.execuitivecode
+  };
+  var search = [];
+  search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.body.seasonnumber });
+  search.push({ username: { $regex: req.body.username}, seasonnumber: req.body.seasonnumber });
+  if(req.body.phonenumber!=''){
+    search.push({ $or: [{phonenumber1: { $regex: req.body.phonenumber}, seasonnumber: req.body.seasonnumber },
+      {phonenumber2: { $regex: req.body.phonenumber}, seasonnumber: req.body.seasonnumber }
+    ]});
+  }
+  if(req.body.agentcode!=''){
+    search.push({ agentcode: { $regex: req.body.agentcode}, seasonnumber: req.body.seasonnumber });
+  }
+  if(req.body.execuitivecode!=''){
+    search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.body.seasonnumber });
+  }
+  search.push({ status: req.body.status, seasonnumber: req.body.seasonnumber });
+  var user = await SchemUser.find({$and: search}).sort({ registrationID: 1 });
+  const season = await Season.find({});
+  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, seasonnumber: req.body.seasonnumber, condition: condition, size: season.length, message: "<div></div>"});
 });
 
 app.post('/report', isAuthenticated, async (req, res) => {
@@ -1089,6 +1175,8 @@ app.post('/statusMember', isAuthenticated, async (req, res) => {
   const user = await SchemUser.findOne({ registrationID: req.body.registrationID });
   var update;
   const season = await Season.findOne({seasonnumber: user.seasonnumber});
+  var temp = getTime();
+  const date = String(temp[2])+"-"+String(temp[1])+"-"+String(temp[0])
   if(req.body.status=='ACTIVE'){
     var unpaidArray = [];
     for(let i=0;i<season.months;i=i+1){
@@ -1099,14 +1187,14 @@ app.post('/statusMember', isAuthenticated, async (req, res) => {
         unpaidArray.push(0);
       }
     }
-    update = {status: req.body.status, unpaidArray: unpaidArray};
+    update = {status: req.body.status, unpaidArray: unpaidArray, seasonnumber: date};
   }
   else{
     var unpaidArray = [];
     for(let i=0;i<season.months;i=i+1){
       unpaidArray.push(0);
     }
-    update = {status: req.body.status, unpaidArray: unpaidArray};
+    update = {status: req.body.status, unpaidArray: unpaidArray, seasonnumber: date};
   }
   await SchemUser.findOneAndUpdate({ registrationID: req.body.registrationID }, update, {new: true,upsert: true});
   res.redirect("/viewSuccess");

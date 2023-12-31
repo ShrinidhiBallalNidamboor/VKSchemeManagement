@@ -5,13 +5,107 @@
           <br>
           <div class="row">
             <%-message%>
-            <form action="/view" method="POST"> 
+            <br>
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Filter Subscribers</h4>
+                  <div class="table-responsive">
+                    <form action="/view" method="POST">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>
+                            Season
+                          </th>
+                          <th>
+                            Membership No
+                          </th>
+                          <th>
+                            Member Name
+                          </th>
+                          <th>
+                            Agent Code
+                          </th>
+                          <th>
+                            Executive Code
+                          </th>
+                          <th>
+                            Status
+                          </th>
+                          <th>
+                            Phone Number
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                            <td>
+                              <select name="seasonnumber" class="form-control">
+                                <option name="seasonnumber" value="<%-seasonnumber%>"><%-seasonnumber%></option>
+                                <%for(let i=0;i!=size;i++){%>
+                                <%if(seasonnumber!=i+1){%>
+                                  <option name="seasonnumber" value="<%-i+1%>"><%-i+1%></option>
+                                <%}%>
+                                <%}%>
+                              </select>
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="Registration ID" name="registrationID" value="<%-condition.registrationID%>">
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="Username" name="username" value="<%-condition.username%>">
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="Agent Code" name="agentcode" value="<%-condition.agentcode%>">
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="Executive Code" name="execuitivecode" value="<%-condition.execuitivecode%>">
+                            </td>
+                            <td>
+                              <select name="status" class="form-control">
+                                <% if(condition.status=="ACTIVE"){%>
+                                <option name="status" value="ACTIVE">ACTIVE</option>
+                                <option name="status" value="WIN">WIN</option>
+                                <option name="status" value="DELETE">DELETE</option>
+                                <%}%>
+                                <% if(condition.status=="WIN"){%>
+                                <option name="status" value="WIN">WIN</option>
+                                <option name="status" value="ACTIVE">ACTIVE</option>
+                                <option name="status" value="DELETE">DELETE</option>
+                                <%}%>
+                                <% if(condition.status=="DELETE"){%>
+                                <option name="status" value="DELETE">DELETE</option>
+                                <option name="status" value="ACTIVE">ACTIVE</option>
+                                <option name="status" value="WIN">WIN</option>
+                                <%}%>
+                              </select>
+                            </td>
+                            <td>
+                              <input type="text" class="form-control" placeholder="phonenumber" name="phonenumber" value="<%-condition.phonenumber%>">
+                            </td>
+                          </tr>
+                          <button type="submit" style="background-color: #1090CF;" class="btn btn-info">Search</button>
+                      </tbody>
+                    </table>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <form action="/downloadSubscriber" method="POST">
+              <div class="btn-wrapper">
+                <input style="display: None;" name="seasonnumber" value="<%-seasonnumber%>"/>
+                <input style="display: None;" name="status" value="<%-condition.status%>"/>
+                <input style="display: None;" name="phonenumber" value="<%-condition.phonenumber%>"/>
+                <input style="display: None;" name="username" value="<%-condition.username%>"/>
+                <input style="display: None;" name="registrationID" value="<%-condition.registrationID%>"/>
+                <input style="display: None;" name="agentcode" value="<%-condition.agentcode%>"/>
+                <input style="display: None;" name="execuitivecode" value="<%-condition.execuitivecode%>"/>
+                <button type="submit" class="btn btn-primary text-white me-0"><i class="icon-printer"></i> Download</button>
+              </div>
               <br>
-              <input style="width: 50%;" class="form-control" type="text" name="condition" placeholder="Membership No/Member Name/Phone Number">
-              <br>
-              <button style="background-color: #1090CF;" class="btn btn-info">Search</button>
-              <br><br>
-            </form>
+              </form>
             <div class="col-lg-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
@@ -31,6 +125,15 @@
                           </th>
                           <th>
                             Phone Number 2
+                          </th>
+                          <th>
+                            Agent Code
+                          </th>
+                          <th>
+                            Executive Code
+                          </th>
+                          <th>
+                            Status
                           </th>
                           <th>
                             Update Button
@@ -57,6 +160,15 @@
                             </td>
                             <td>
                               <%-user[i].phonenumber2%>
+                            </td>
+                            <td>
+                              <%-user[i].agentcode%>
+                            </td>
+                            <td>
+                              <%-user[i].execuitivecode%>
+                            </td>
+                            <td>
+                              <%-user[i].status%>
                             </td>
                             <td>
                               <form action="/updatedata" method="POST"> 
