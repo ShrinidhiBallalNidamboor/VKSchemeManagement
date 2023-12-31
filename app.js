@@ -808,13 +808,15 @@ app.post('/execuitivedata', isAuthenticated, async (req, res) => {
 app.post('/transaction', isAuthenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
   const season = await Season.findOne({seasonnumber: user.seasonnumber});
-  res.render("src/Entered/transactionEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount});
+  const message = "<div></div>";
+  res.render("src/Entered/transactionEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
 });
 
 app.post('/transactionSubscriber', isAuthenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
   const season = await Season.findOne({seasonnumber: user.seasonnumber});
-  res.render("src/Entered/transactionEnteredSubscriberMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount});
+  const message = "<div></div>";
+  res.render("src/Entered/transactionEnteredSubscriberMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
 });
 
 app.post('/statusdata', isAuthenticated, async (req, res) => {
@@ -840,13 +842,19 @@ app.post('/transactionMember', isAuthenticated, async (req, res) => {
   for(let i=0;i<req.body.transactionArray.length;i++){
     if(req.body.paidArray[i]=='0'){
       if(!(req.body.transactionArray[i]=='' && req.body.paymentdateArray[i]=='')){
-        res.redirect("/reportFailure");
+        const user = await SchemUser.findOne({_id: req.body.identifier});
+        const season = await Season.findOne({seasonnumber: user.seasonnumber});
+        const message = '<div class="alert alert-danger"><strong>Failure!</strong> Paid value zero.</div>';
+        res.render("src/Entered/transactionEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
         return;
       }
     }
     else{
       if(req.body.transactionArray[i]=='' || req.body.paymentdateArray[i]==''){
-        res.redirect("/reportFailure");
+        const user = await SchemUser.findOne({_id: req.body.identifier});
+        const season = await Season.findOne({seasonnumber: user.seasonnumber});
+        const message = '<div class="alert alert-danger"><strong>Failure!</strong> Unfilled payment date or transaction date.</div>';
+        res.render("src/Entered/transactionEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
         return;
       }
     }
@@ -890,13 +898,19 @@ app.post('/transactionSubscriberMember', isAuthenticated, async (req, res) => {
   for(let i=0;i<req.body.transactionArray.length;i++){
     if(req.body.paidArray[i]=='0'){
       if(!(req.body.transactionArray[i]=='' && req.body.paymentdateArray[i]=='')){
-        res.redirect("/viewFailure");
+        const user = await SchemUser.findOne({_id: req.body.identifier});
+        const season = await Season.findOne({seasonnumber: user.seasonnumber});
+        const message = '<div class="alert alert-danger"><strong>Failure!</strong> Paid value zero.</div>';
+        res.render("src/Entered/transactionEnteredSubscriberMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
         return;
       }
     }
     else{
       if(req.body.transactionArray[i]=='' || req.body.paymentdateArray[i]==''){
-        res.redirect("/viewFailure");
+        const user = await SchemUser.findOne({_id: req.body.identifier});
+        const season = await Season.findOne({seasonnumber: user.seasonnumber});
+        const message = '<div class="alert alert-danger"><strong>Failure!</strong> Unfilled payment date or transaction date.</div>';
+        res.render("src/Entered/transactionEnteredSubscriberMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
         return;
       }
     }
