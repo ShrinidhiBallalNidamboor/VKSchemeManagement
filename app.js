@@ -364,7 +364,7 @@ app.get("/uploadExecuitive", isAuthenticated, async (req, res) => {
 app.get("/uploadMember", isAuthenticated, async (req, res) => {
   const csvFilePath = 'CSVFiles/MembershipDataCSV.csv';
   let date = getTime();
-  date = String(date[2])+"-"+String(date[1])+"-"+String(date[0]);
+  date = String(date[2]).padStart(2, '0')+"-"+String(date[1]).padStart(2, '0')+"-"+String(date[0]).padStart(2, '0');
   let index = 1;
   fs.createReadStream(csvFilePath)
   .pipe(csv())
@@ -453,7 +453,7 @@ app.post('/pendingDownload', isAuthenticated, async (req, res) => {
   const size = season.length;
   var user = await SchemUser.find({seasonnumber: req.body.seasonnumber}).sort({ registrationID: 1 });
   var temp = getTime();
-  var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
+  var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   if(req.body.date!=''){
     date = req.body.date
   }
@@ -683,7 +683,7 @@ app.get('/report', isAuthenticated, async (req, res) => {
   const user = await SchemUser.find({seasonnumber: size}).sort({ registrationID: 1 });
   var message = "<div></div>";
   var temp = getTime();
-  var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
+  var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   var condition = {
     date: date,
     username: '',
@@ -714,7 +714,7 @@ app.get('/reportSuccess', isAuthenticated, async (req, res) => {
   const user = await SchemUser.find({seasonnumber: size}).sort({ registrationID: 1 });
   var message = success;
   var temp = getTime();
-  var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
+  var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   var condition = {
     date: date,
     username: '',
@@ -745,7 +745,7 @@ app.get('/reportFailure', isAuthenticated, async (req, res) => {
   const user = await SchemUser.find({seasonnumber: size}).sort({ registrationID: 1 });
   var message = failure;
   var temp = getTime();
-  var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
+  var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   var condition = {
     date: date,
     username: '',
@@ -850,7 +850,7 @@ app.post('/report', isAuthenticated, async (req, res) => {
   const size = season.length;
   var user = await SchemUser.find({seasonnumber: req.body.seasonnumber}).sort({ registrationID: 1 }); 
   var temp = getTime();
-  var date = String(temp[0])+"-"+String(temp[1])+"-"+String(temp[2]);
+  var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   if(req.body.date!=''){
     date = req.body.date
   }
@@ -988,7 +988,10 @@ app.post('/transactionMember', isAuthenticated, async (req, res) => {
     await insertTransactionID(array);
   }
   else{
-    res.redirect("/reportFailure");
+    const user = await SchemUser.findOne({_id: req.body.identifier});
+    const season = await Season.findOne({seasonnumber: user.seasonnumber});
+    const message = '<div class="alert alert-danger"><strong>Failure!</strong> Repeated Transaction ID.</div>';
+    res.render("src/Entered/transactionEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
     return;
   }
   var transactionArray = []
@@ -1044,7 +1047,10 @@ app.post('/transactionSubscriberMember', isAuthenticated, async (req, res) => {
     await insertTransactionID(array);
   }
   else{
-    res.redirect("/viewFailure");
+    const user = await SchemUser.findOne({_id: req.body.identifier});
+    const season = await Season.findOne({seasonnumber: user.seasonnumber});
+    const message = '<div class="alert alert-danger"><strong>Failure!</strong> Repeated Transaction ID.</div>';
+    res.render("src/Entered/transactionEnteredSubscriberMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
     return;
   }
   var transactionArray = []
@@ -1069,7 +1075,7 @@ app.post('/transactionSubscriberMember', isAuthenticated, async (req, res) => {
 
 app.post('/updateMember', isAuthenticated, async (req, res) => {
   var temp = getTime();
-  const date = String(temp[2])+"-"+String(temp[1])+"-"+String(temp[0])
+  const date = String(temp[2]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[0]).padStart(2, '0');
   var agentcode = null
   var execuitivecode = null
   if(req.body.agentcode!=""){
@@ -1136,7 +1142,7 @@ app.post('/addMember', isAuthenticated, async (req, res) => {
     paidArray.push(0)
   }
   var temp = getTime();
-  const date = String(temp[2])+"-"+String(temp[1])+"-"+String(temp[0])
+  const date = String(temp[2]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[0]).padStart(2, '0');
   var agentcode = null
   var execuitivecode = null
   if(req.body.agentcode!=""){
@@ -1207,7 +1213,7 @@ app.post('/statusMember', isAuthenticated, async (req, res) => {
   var update;
   const season = await Season.findOne({seasonnumber: user.seasonnumber});
   var temp = getTime();
-  const date = String(temp[2])+"-"+String(temp[1])+"-"+String(temp[0])
+  const date = String(temp[2]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[0]).padStart(2, '0');
   if(req.body.status=='ACTIVE'){
     var unpaidArray = [];
     for(let i=0;i<season.months;i=i+1){
@@ -1218,14 +1224,14 @@ app.post('/statusMember', isAuthenticated, async (req, res) => {
         unpaidArray.push(0);
       }
     }
-    update = {status: req.body.status, unpaidArray: unpaidArray, seasonnumber: date};
+    update = {status: req.body.status, unpaidArray: unpaidArray, statusdate: date};
   }
   else{
     var unpaidArray = [];
     for(let i=0;i<season.months;i=i+1){
       unpaidArray.push(0);
     }
-    update = {status: req.body.status, unpaidArray: unpaidArray, seasonnumber: date};
+    update = {status: req.body.status, unpaidArray: unpaidArray, statusdate: date};
   }
   await SchemUser.findOneAndUpdate({ registrationID: req.body.registrationID }, update, {new: true,upsert: true});
   res.redirect("/viewSuccess");
