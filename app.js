@@ -555,7 +555,6 @@ app.post('/subscriberDownload', isAuthenticated, async (req, res) => {
     object["agentcode"]=user[i].agentcode;
     object["execuitivecode"]=user[i].execuitivecode;
     months=user[i].transactionArray.length;
-    console.log(user[i].transactionArray)
     for(let j=1;j<=months;j++){
       object[String(j)+" Payment Date"]=user[i].paymentdateArray[j-1];
       object[String(j)+" Transaction ID"]=user[i].transactionArray[j-1];
@@ -565,7 +564,6 @@ app.post('/subscriberDownload', isAuthenticated, async (req, res) => {
     }
     result.push(object);
   }
-  console.log(result)
   try {
     await arrayToCsvSubscriber(result, months);
     const fileStream = fs.createReadStream('output.csv');
