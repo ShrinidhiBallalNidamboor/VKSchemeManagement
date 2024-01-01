@@ -240,11 +240,16 @@ function arrayToCsv(arrayData) {
   return csvWriter.writeRecords(arrayData);
 };
 
-function arrayToCsvSubscriber(arrayData) {
+function arrayToCsvSubscriber(arrayData, months) {
   const csvFilePath = "output.csv";
-  const csvHeader = ["username", "phonenumber1", "phonenumber2",
+  var csvHeader = ["username", "phonenumber1", "phonenumber2",
   "registrationID", "status", "statusdate", "seasonnumber",
-  "agentcode", "execuitivecode", "transactionArray", "paymentdateArray", "paidArray"];
+  "agentcode", "execuitivecode"];
+  for(let i=1;i<=months;i++){
+    csvHeader.push(String(i)+" Payment Date");
+    csvHeader.push(String(i)+" Transaction ID");
+    csvHeader.push(String(i)+" Paid");
+  }
   const csvWriter = createCsvWriter({
     path: csvFilePath,
     header: csvHeader.map(header => ({ id: header, title: header }))
@@ -533,8 +538,36 @@ app.post('/subscriberDownload', isAuthenticated, async (req, res) => {
   }
   search.push({ status: req.body.status, seasonnumber: req.body.seasonnumber });
   var user = await SchemUser.find({$and: search}).select("username phonenumber1 phonenumber2 registrationID status statusdate seasonnumber agentcode execuitivecode transactionArray paymentdateArray paidArray").sort({ registrationID: 1 });
+  var length = 0;
+  if(user!=null) 
+    length = user.length;
+  var result = [];
+  var months = 0;
+  for(let i=0;i<length;i++){
+    var object = {};
+    object["username"]=user[i].username;
+    object["phonenumber1"]=user[i].phonenumber1;
+    object["phonenumber2"]=user[i].phonenumber2;
+    object["registrationID"]=user[i].registrationID;
+    object["status"]=user[i].status;
+    object["statusdate"]=user[i].statusdate;
+    object["seasonnumber"]=user[i].seasonnumber;
+    object["agentcode"]=user[i].agentcode;
+    object["execuitivecode"]=user[i].execuitivecode;
+    months=user[i].transactionArray.length;
+    console.log(user[i].transactionArray)
+    for(let j=1;j<=months;j++){
+      object[String(j)+" Payment Date"]=user[i].paymentdateArray[j-1];
+      object[String(j)+" Transaction ID"]=user[i].transactionArray[j-1];
+      object[String(j)+" Paid"]='';
+      if(user[i].paidArray[j-1]!=0)
+        object[String(j)+" Paid"]=user[i].paidArray[j-1];
+    }
+    result.push(object);
+  }
+  console.log(result)
   try {
-    await arrayToCsvSubscriber(user);
+    await arrayToCsvSubscriber(result, months);
     const fileStream = fs.createReadStream('output.csv');
     const csvContent = fs.readFileSync('output.csv', 'utf8');
     res.setHeader('Content-Type', 'text/csv');
