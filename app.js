@@ -443,7 +443,7 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
   });
 });
 
-app.post('/download', isAuthenticated, async (req, res) => {
+app.post('/pendingDownload', isAuthenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
   var user = await SchemUser.find({seasonnumber: req.body.seasonnumber}).sort({ registrationID: 1 });
@@ -514,7 +514,7 @@ app.post('/download', isAuthenticated, async (req, res) => {
   }
 });
 
-app.post('/downloadSubscriber', isAuthenticated, async (req, res) => {
+app.post('/subscriberDownload', isAuthenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
   var search = [];
