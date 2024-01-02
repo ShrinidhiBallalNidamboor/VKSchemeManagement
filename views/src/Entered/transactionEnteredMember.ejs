@@ -8,9 +8,8 @@
               <div class="card">
                 <div class="card-body">
                   <%-message%>
-                  <form action="/report" method="GET">
-                    <button type="submit" class="btn btn-primary" style="background-color: rgb(59, 58, 58);">Back</button>
-                  </form>
+                  <button  class="btn btn-primary" style="background-color: rgb(59, 58, 58);" onclick="goBack()">Back</button>
+                  <br>
                   <br>
                   <h4 class="card-title">Transactions of Subscriber: <%-user.username%></h4>
                   <div class="table-responsive">
@@ -100,6 +99,11 @@
     b = myinput2.value;
     myinput1.value = b;
     myinput2.value = a;
+  }
+</script>
+<script>
+  function goBack() {
+    window.history.back();
   }
 </script>
 <%- include('partials/footer') %>

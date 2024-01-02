@@ -7,9 +7,8 @@
             <div class="col-md-6 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <form action="/view" method="GET">
-                    <button type="submit" class="btn btn-primary" style="background-color: rgb(59, 58, 58);">Back</button>
-                  </form>
+                  <button  class="btn btn-primary" style="background-color: rgb(59, 58, 58);" onclick="goBack()">Back</button>
+                  <br>
                   <br>
                   <h4 class="card-title">Change Status Member: <%-user.registrationID%></h4>
                   <form action="/statusMember" method="POST">
@@ -43,4 +42,9 @@
         </div>
         <!-- content-wrapper ends -->
         <!-- partial:../../partials/_footer.html -->
+<script>
+  function goBack() {
+    window.history.back();
+  }
+</script>
 <%- include('partials/footer') %>
