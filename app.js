@@ -207,9 +207,8 @@ function unpaidMoneyDate(user, date){
   for(let j=0;j<size;j=j+1){
     let value1 = user.lastdateArray[j].split("-");
     let value2 = date.split("-");
-    let a = [Number(value1[2]), Number(value1[1]), Number(value1[0])];
-    let b = [Number(value2[0]), Number(value2[1]), Number(value2[2])];
-    let c = [Number(value1[2])+Math.floor(Number(value1[1])/12), Number(value1[1])%12+1, Number(value1[0])];
+    let a = [value1[2].padStart(2, '0'), value1[1].padStart(2, '0'), value1[0].padStart(2, '0')];
+    let b = [value2[0].padStart(2, '0'), value2[1].padStart(2, '0'), value2[2].padStart(2, '0')];
     if(a<=b){
       unpaid += user.unpaidArray[j];
     }
