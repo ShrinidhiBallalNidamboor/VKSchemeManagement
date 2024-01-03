@@ -22,6 +22,8 @@ const { ObjectID, ObjectId } = require("mongodb");
 const { use } = require("passport");
 const { get } = require("http");
 
+
+//Include the ejs and the css files with the backend code
 app.use(cors());
 app.use(express.static("public"));
 app.set('view engine', 'ejs');
@@ -129,7 +131,7 @@ app.use(session({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Middleware to check if the user is logged in
+// Middleware to check if the user is logged in and is an admin
 const isAuthenticated = (req, res, next) => {
   if (req.session && req.session.user && req.session.user.role=='admin') {
     return next();
@@ -139,6 +141,7 @@ const isAuthenticated = (req, res, next) => {
   }
 };
 
+// Middleware to check if the user is logged in
 const Authenticated = (req, res, next) => {
   if (req.session && req.session.user) {
     return next();
@@ -148,6 +151,7 @@ const Authenticated = (req, res, next) => {
   }
 };
 
+// Check if the transaction ID array is unique as per the transaction collection
 async function uniqueTransactionID(transactionArray){
   let length = transactionArray.length;
   let transaction = await Transaction.find({});
@@ -174,6 +178,7 @@ async function uniqueTransactionID(transactionArray){
   return true;
 };
 
+// Create a new transaction ID in the transaction collection
 async function insertTransactionID(transactionArray){
   let length = transactionArray.length;
   for(let i=0;i<length;i=i+1){
@@ -183,6 +188,7 @@ async function insertTransactionID(transactionArray){
   }
 };
 
+// Find the unpaid money for the given user
 function unpaidMoney(user){
   let size = user.paidArray.length;
   let unpaid = 0;
@@ -192,6 +198,7 @@ function unpaidMoney(user){
   return unpaid;
 };
 
+// Find the paid money for the given user
 function paidMoney(user){
   let size = user.paidArray.length;
   let paid = 0;
@@ -201,6 +208,7 @@ function paidMoney(user){
   return paid;
 };
 
+// Find the unpaid money for the given user
 function unpaidMoneyDate(user, date){
   let size = user.paidArray.length;
   let unpaid = 0;
@@ -220,6 +228,7 @@ function unpaidMoneyDate(user, date){
   return unpaid;
 };
 
+// Get the current time
 function getTime(){
   const currentDate = new Date();
   const year = currentDate.getFullYear();
@@ -228,6 +237,7 @@ function getTime(){
   return [year, month, day];
 };
 
+// Create a csv file from the object (as the parameter) which includes the pending amount
 function arrayToCsv(arrayData) {
   const csvFilePath = "output.csv";
   const csvHeader = ["registrationID", "username", "phonenumber1",
@@ -239,6 +249,7 @@ function arrayToCsv(arrayData) {
   return csvWriter.writeRecords(arrayData);
 };
 
+// Create a csv file from the object provided as the parameter
 function arrayToCsvSubscriber(arrayData, months) {
   const csvFilePath = "output.csv";
   var csvHeader = ["username", "phonenumber1", "phonenumber2",
@@ -256,6 +267,7 @@ function arrayToCsvSubscriber(arrayData, months) {
   return csvWriter.writeRecords(arrayData);
 };
 
+// Get the graph data (pie chart and the point graph) for the given set of users who belong to the given season 
 async function graphData(seasonnumber) {
   const user = await SchemUser.find({seasonnumber: seasonnumber}).select('seasonnumber paidArray unpaidArray agentcode');
   var result = {paid: 0, unpaid: 0, length: 0, size: 0,
@@ -273,6 +285,7 @@ async function graphData(seasonnumber) {
       result.size += 1;
     }
   }
+  // Find all the agent codes of the scheme users and then find the amount of money that each agent has brought
   for(let i=0;i<result.length;i=i+1){
     let tempPaid = paidMoney(user[i]);
     let tempUnpaid = unpaidMoney(user[i]);
@@ -298,6 +311,7 @@ async function graphData(seasonnumber) {
 };
 
 
+// Display the dashboard after acquiring the graph data
 app.get('/', Authenticated, async (req, res) => {
   const seasons = await Season.find({});
   const result = await graphData(req.session.user.seasonnumber);
@@ -307,12 +321,14 @@ app.get('/', Authenticated, async (req, res) => {
 });
 
 
+// Take the season number as the input from the user
 app.post('/season', Authenticated, async (req, res) => {
   req.session.user.seasonnumber = req.body.seasonnumber;
   res.redirect("/");
 });
 
 
+// Upload the csv files of the agent data
 app.get("/uploadAgent", Authenticated, async (req, res) => {
   const csvFilePath = 'CSVFiles/AgentDataCSV.csv';
   fs.createReadStream(csvFilePath)
@@ -326,7 +342,7 @@ app.get("/uploadAgent", Authenticated, async (req, res) => {
     res.redirect("/");
   });
 });
-
+// Upload the csv files of the executive data
 app.get("/uploadExecuitive", Authenticated, async (req, res) => {
   const csvFilePath = 'CSVFiles/ExecutiveDataCSV.csv';
   fs.createReadStream(csvFilePath)
@@ -340,7 +356,7 @@ app.get("/uploadExecuitive", Authenticated, async (req, res) => {
     res.redirect("/");
   });
 });
-
+// Upload the csv files of the scheme member data
 app.get("/uploadMember", isAuthenticated, async (req, res) => {
   const csvFilePath = 'CSVFiles/MembershipDataCSV.csv';
   let date = getTime();
@@ -428,6 +444,8 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
   });
 });
 
+
+// Download the csv file which includes the pending the amount
 app.post('/pendingDownload', isAuthenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
@@ -444,8 +462,8 @@ app.post('/pendingDownload', isAuthenticated, async (req, res) => {
   }
   for(let i=0;i<length;i=i+1){
     if( req.body.registrationID!='' && user[i].registrationID.includes(req.body.registrationID) || req.body.username!='' && user[i].username.includes(req.body.username) ||
-    req.body.execuitivecode!='' && user[i].execuitivecode.includes(req.body.execuitivecode) || req.body.agentcode!='' && user[i].agentID.includes(req.body.agentcode) 
-    || req.body.phonenumber!='' && user[i].phonenumber1.includes(req.body.phonenumber) || req.body.phonenumber!='' && user[i].phonenumber2.includes(req.body.phonenumber)){
+    req.body.execuitivecode!='' && user[i].execuitivecode!=null && user[i].execuitivecode.includes(req.body.execuitivecode) || req.body.agentcode!='' && user[i].agentcode!=null && user[i].agentcode.includes(req.body.agentcode)
+    || req.body.phonenumber!='' && user[i].phonenumber1!=null && user[i].phonenumber1.includes(req.body.phonenumber) || req.body.phonenumber!='' && user[i].phonenumber2!=null && user[i].phonenumber2.includes(req.body.phonenumber)){
       let unpaid = unpaidMoneyDate(user[i], date);
       if(unpaid!=0){
         let temp = {
@@ -499,7 +517,7 @@ app.post('/pendingDownload', isAuthenticated, async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
-
+// Download the csv file which contains the data of the subscribers
 app.post('/subscriberDownload', isAuthenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
@@ -559,6 +577,7 @@ app.post('/subscriberDownload', isAuthenticated, async (req, res) => {
 });
 
 
+// Display the scheme subscribers as a table 
 app.get('/view', Authenticated, async (req, res) => {
   var condition = {
     username: '',
@@ -573,7 +592,7 @@ app.get('/view', Authenticated, async (req, res) => {
   var message = "<div></div>"
   res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, condition: condition, seasonnumber: req.session.user.seasonnumber, size: season.length, message: message});
 });
-
+// Display the scheme subscribers as a table along with the success message
 app.get('/viewSuccess', Authenticated, async (req, res) => {
   var condition = {
     username: '',
@@ -588,7 +607,7 @@ app.get('/viewSuccess', Authenticated, async (req, res) => {
   var message = success;
   res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, condition: condition, seasonnumber: req.session.user.seasonnumber, size: season.length, message: message});
 });
-
+// Display the scheme subscribers as a table along with the failure message
 app.get('/viewFailure', Authenticated, async (req, res) => {
   var condition = {
     username: '',
@@ -605,6 +624,7 @@ app.get('/viewFailure', Authenticated, async (req, res) => {
 });
 
 
+// Display the scheme subscribers along with the pending information as a table 
 app.get('/report', Authenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
@@ -635,7 +655,7 @@ app.get('/report', Authenticated, async (req, res) => {
   res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: req.session.user.seasonnumber, role: req.session.user.role,
     message: message, pending: pending, condition: condition, size: size});
 });
-
+// Display the scheme subscribers along with the pending information as a table with the success information
 app.get('/reportSuccess', Authenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
@@ -666,7 +686,7 @@ app.get('/reportSuccess', Authenticated, async (req, res) => {
   res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: req.session.user.seasonnumber, role: req.session.user.role,
     message: message, pending:pending, condition: condition, size: size});
 });
-
+// Display the scheme subscribers along with the pending information as a table with the failure information
 app.get('/reportFailure', Authenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
@@ -699,18 +719,19 @@ app.get('/reportFailure', Authenticated, async (req, res) => {
 });
 
 
+// Display the agent information as a table
 app.get('/agent', Authenticated, async (req, res) => {
   const agent = await Agent.find({}).sort({ agentcode: 1 });
   var message = "<div></div>"
   res.render("src/Tables/agent", {username:req.session.user.username, role: req.session.user.role, agent: agent, message: message});
 });
-
+// Display the agent information as a table along with success message
 app.get('/agentSuccess', Authenticated, async (req, res) => {
   const agent = await Agent.find({}).sort({ agentcode: 1 });
   var message = success
   res.render("src/Tables/agent", {username:req.session.user.username, role: req.session.user.role, agent: agent, message: message});
 });
-
+// Display the agent information as a table along with failure message
 app.get('/agentFailure', Authenticated, async (req, res) => {
   const agent = await Agent.find({}).sort({ agentcode: 1 });
   var message = failure
@@ -718,18 +739,19 @@ app.get('/agentFailure', Authenticated, async (req, res) => {
 });
 
 
+// Display the executive information as a table
 app.get('/execuitive', Authenticated, async (req, res) => {
   const execuitive = await Execuitive.find({}).sort({ execuitivecode: 1 });
   var message = "<div></div>"
   res.render("src/Tables/execuitive", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive, message: message});
 });
-
+// Display the executive information as a table along with success message
 app.get('/execuitiveSuccess', Authenticated, async (req, res) => {
   const execuitive = await Execuitive.find({}).sort({ execuitivecode: 1 });
   var message = success
   res.render("src/Tables/execuitive", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive, message: message});
 });
-
+// Display the executive information as a table along with failure message
 app.get('/execuitiveFailure', Authenticated, async (req, res) => {
   const execuitive = await Execuitive.find({}).sort({ execuitivecode: 1 });
   var message = failure
@@ -737,6 +759,7 @@ app.get('/execuitiveFailure', Authenticated, async (req, res) => {
 });
 
 
+// Display filtered the scheme user data
 app.post('/view', Authenticated, async (req, res) => {
   var condition = {
     username: req.body.username,
@@ -765,7 +788,7 @@ app.post('/view', Authenticated, async (req, res) => {
   const season = await Season.find({});
   res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, seasonnumber: req.session.user.seasonnumber, condition: condition, size: season.length, message: "<div></div>"});
 });
-
+// Display filtered the scheme user including the pending amount data
 app.post('/report', Authenticated, async (req, res) => {
   var condition = {
     date: req.body.date,
@@ -791,8 +814,8 @@ app.post('/report', Authenticated, async (req, res) => {
   }
   for(let i=0;i<length;i=i+1){
     if( req.body.registrationID!='' && user[i].registrationID.includes(req.body.registrationID) || req.body.username!='' && user[i].username.includes(req.body.username) ||
-    req.body.execuitivecode!='' && user[i].execuitivecode.includes(req.body.execuitivecode) || req.body.agentcode!='' && user[i].agentID.includes(req.body.agentcode)
-    || req.body.phonenumber!='' && user[i].phonenumber1.includes(req.body.phonenumber) || req.body.phonenumber!='' && user[i].phonenumber2.includes(req.body.phonenumber)){
+    req.body.execuitivecode!='' && user[i].execuitivecode!=null && user[i].execuitivecode.includes(req.body.execuitivecode) || req.body.agentcode!='' && user[i].agentcode!=null && user[i].agentcode.includes(req.body.agentcode)
+    || req.body.phonenumber!='' && user[i].phonenumber1!=null && user[i].phonenumber1.includes(req.body.phonenumber) || req.body.phonenumber!='' && user[i].phonenumber2!=null && user[i].phonenumber2.includes(req.body.phonenumber)){
       let unpaid = unpaidMoneyDate(user[i], date);
       if(unpaid!=0){
         result.push(user[i])
@@ -811,7 +834,7 @@ app.post('/report', Authenticated, async (req, res) => {
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
     message: "<div></div>", pending: pending, condition: condition, size: size});
 });
-
+// Display filtered the agent data
 app.post('/agent', Authenticated, async (req, res) => {
   var agent = await Agent.find({$or: [
       { username: { $regex: req.body.condition} },
@@ -823,7 +846,7 @@ app.post('/agent', Authenticated, async (req, res) => {
     }
   res.render("src/Tables/agent", {username:req.session.user.username, role: req.session.user.role, agent: agent, message: "<div></div>"});
 });
-
+// Dislay filtered the executive data
 app.post('/execuitive', Authenticated, async (req, res) => {
   var execuitive = await Execuitive.find({$or: [
       { username: { $regex: req.body.condition } },
@@ -837,49 +860,51 @@ app.post('/execuitive', Authenticated, async (req, res) => {
 });
 
 
+//  Update the scheme user data
 app.post('/updatedata', Authenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
   res.render("src/Entered/updateEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user});
 });
-
+//  Update the agent data
 app.post('/agentdata', Authenticated, async (req, res) => {
   const agent = await Agent.findOne({_id: req.body.update});
   res.render("src/Entered/updateEnteredAgent", {username:req.session.user.username, role: req.session.user.role, agent: agent});
 });
-
+//  Update the executive data
 app.post('/execuitivedata', Authenticated, async (req, res) => {
   const execuitive = await Execuitive.findOne({_id: req.body.update});
   res.render("src/Entered/updateEnteredExecuitive", {username:req.session.user.username, role: req.session.user.role, execuitive: execuitive});
 });
-
+//  Update the transaction data from the pending amount table page
 app.post('/transaction', Authenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
   const season = await Season.findOne({seasonnumber: user.seasonnumber});
   const message = "<div></div>";
   res.render("src/Entered/transactionEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
 });
-
+//  Update the transaction data from the subscriber table page
 app.post('/transactionSubscriber', Authenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
   const season = await Season.findOne({seasonnumber: user.seasonnumber});
   const message = "<div></div>";
   res.render("src/Entered/transactionEnteredSubscriberMember", {username:req.session.user.username, role: req.session.user.role, user: user, amount: season.amount, message: message});
 });
-
+// Update the status of the user
 app.post('/statusdata', Authenticated, async (req, res) => {
   const user = await SchemUser.findOne({_id: req.body.update});
   res.render("src/Entered/statusEnteredMember", {username:req.session.user.username, role: req.session.user.role, user: user});
 });
 
 
+// Add the member into collection
 app.get('/addMember', Authenticated, (req, res) => {
   res.render("src/Forms/addMember", {username:req.session.user.username, role: req.session.user.role});
 });
-
+// Add the agent into collection
 app.get('/addAgent', Authenticated, (req, res) => {
   res.render("src/Forms/addAgent", {username:req.session.user.username, role: req.session.user.role});
 });
-
+// Add the executive into collection
 app.get('/addExecuitive', Authenticated, (req, res) => {
   res.render("src/Forms/addExecuitive", {username:req.session.user.username, role: req.session.user.role});
 });
