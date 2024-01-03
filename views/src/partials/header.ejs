@@ -36,22 +36,12 @@
       </button>
     </div>
     <div>
-      <%if(role=='admin'){%>
-        <a class="navbar-brand brand-logo" href="/">
-          <img src="assets/images/logo.jpg" alt="logo" />
-        </a>
-        <a class="navbar-brand brand-logo-mini" href="/">
-          <img src="assets/images/logo-min.jpg" alt="logo" />
-        </a>
-      <%}%>
-      <%if(role=='normal'){%>
-        <a class="navbar-brand brand-logo" href="/dashboard">
-          <img src="assets/images/logo.jpg" alt="logo" />
-        </a>
-        <a class="navbar-brand brand-logo-mini" href="/dashboard">
-          <img src="assets/images/logo-min.jpg" alt="logo" />
-        </a>
-      <%}%>
+      <a class="navbar-brand brand-logo" href="/">
+        <img src="assets/images/logo.jpg" alt="logo" />
+      </a>
+      <a class="navbar-brand brand-logo-mini" href="/">
+        <img src="assets/images/logo-min.jpg" alt="logo" />
+      </a>
     </div>
   </div>
   <div class="navbar-menu-wrapper d-flex align-items-top" style="background-color: #1090CF;">
@@ -93,7 +83,6 @@
   <div class="container-fluid page-body-wrapper">
   <nav class="sidebar sidebar-offcanvas" id="sidebar" style="background-color: rgb(0, 0, 0);">
   <ul class="nav">
-    <%if(role=='admin'){%>
     <li class="nav-item">
       <a class="nav-link" href="/">
         <i class="mdi mdi-grid-large menu-icon" style="color: rgb(126, 189, 249);"></i>
@@ -132,29 +121,5 @@
         </ul>
       </div>
     </li>
-    <%}%>
-    <%if(role=='normal'){%>
-    <li class="nav-item">
-      <a class="nav-link" href="/dashboard">
-        <i class="mdi mdi-grid-large menu-icon" style="color: rgb(126, 189, 249);"></i>
-        <span class="menu-title" style="color: rgb(126, 189, 249);">Home</span>
-      </a>
-    </li>
-    <li class="nav-item nav-category" style="color: rgb(126, 189, 249);">Data</li>
-    <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#icons" aria-expanded="false" aria-controls="icons">
-        <i class="menu-icon mdi mdi-layers-outline" style="color: rgb(126, 189, 249);"></i>
-        <span class="menu-title" style="color: rgb(126, 189, 249);">View</span>
-        <i class="menu-arrow"></i>
-      </a>
-      <div class="collapse" id="icons">
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item"> <a class="nav-link" href="/viewnormal">Subscriber</a></li>
-          <li class="nav-item"> <a class="nav-link" href="/agentnormal">Agent</a></li>
-          <li class="nav-item"> <a class="nav-link" href="/execuitivenormal">Executive</a></li>
-        </ul>
-      </div>
-    </li>
-    <%}%>
   </ul>
 </nav>

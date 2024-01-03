@@ -16,9 +16,6 @@
                       <thead>
                         <tr>
                           <th>
-                            Season
-                          </th>
-                          <th>
                             Membership No
                           </th>
                           <th>
@@ -40,16 +37,6 @@
                       </thead>
                       <tbody>
                           <tr>
-                            <td>
-                              <select name="seasonnumber" class="form-control">
-                                <option name="seasonnumber" value="<%-seasonnumber%>"><%-seasonnumber%></option>
-                                <%for(let i=0;i!=size;i++){%>
-                                <%if(seasonnumber!=i+1){%>
-                                  <option name="seasonnumber" value="<%-i+1%>"><%-i+1%></option>
-                                <%}%>
-                                <%}%>
-                              </select>
-                            </td>
                             <td>
                               <input type="text" class="form-control" placeholder="Registration ID" name="registrationID" value="<%-condition.registrationID%>">
                             </td>

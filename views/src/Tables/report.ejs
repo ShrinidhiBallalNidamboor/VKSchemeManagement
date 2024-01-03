@@ -19,7 +19,7 @@
                             Last Date
                           </th>
                           <th>
-                            Season
+                            Phone Number
                           </th>
                           <th>
                             Membership No
@@ -41,14 +41,7 @@
                               <input type="date" class="form-control" placeholder="Date" name="date" value="<%-condition.date%>">
                             </td>
                             <td>
-                              <select name="seasonnumber" class="form-control">
-                                <option name="seasonnumber" value="<%-seasonnumber%>"><%-seasonnumber%></option>
-                                <%for(let i=0;i!=size;i++){%>
-                                <%if(seasonnumber!=i+1){%>
-                                  <option name="seasonnumber" value="<%-i+1%>"><%-i+1%></option>
-                                <%}%>
-                                <%}%>
-                              </select>
+                              <input type="text" class="form-control" placeholder="Phonenumber" name="phonenumber" value="<%-condition.phonenumber%>">
                             </td>
                             <td>
                               <input type="text" class="form-control" placeholder="Registration ID" name="registrationID" value="<%-condition.registrationID%>">
@@ -74,6 +67,7 @@
             <form action="/pendingDownload" method="POST">
             <div class="btn-wrapper">
               <input style="display: None;" name="seasonnumber" value="<%-seasonnumber%>"/>
+              <input style="display: None;" name="phonenumber" value="<%-condition.phonenumber%>"/>
               <input style="display: None;" name="date" value="<%-condition.date%>"/>
               <input style="display: None;" name="username" value="<%-condition.username%>"/>
               <input style="display: None;" name="registrationID" value="<%-condition.registrationID%>"/>
