@@ -449,50 +449,44 @@ app.get("/uploadMember", isAuthenticated, async (req, res) => {
 app.post('/pendingDownload', isAuthenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
-  var user = await SchemUser.find({seasonnumber: req.session.user.seasonnumber}).sort({ registrationID: 1 });
   var temp = getTime();
   var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   if(req.body.date!=''){
     date = req.body.date
   }
+  var search = [];
+  search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
+  if(req.body.phonenumber!=''){
+    search.push({ $or: [{phonenumber1: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber },
+      {phonenumber2: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber }
+    ]});
+  }
+  if(req.body.agentcode!=''){
+    search.push({ agentcode: { $regex: req.body.agentcode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  if(req.body.execuitivecode!=''){
+    search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  var user = await SchemUser.find({$and: search}).sort({ registrationID: 1 });
   var result = []
   var length = 0
   if(user!=null){
     length = user.length
   }
   for(let i=0;i<length;i=i+1){
-    if( req.body.registrationID!='' && user[i].registrationID.includes(req.body.registrationID) || req.body.username!='' && user[i].username.includes(req.body.username) ||
-    req.body.execuitivecode!='' && user[i].execuitivecode!=null && user[i].execuitivecode.includes(req.body.execuitivecode) || req.body.agentcode!='' && user[i].agentcode!=null && user[i].agentcode.includes(req.body.agentcode)
-    || req.body.phonenumber!='' && user[i].phonenumber1!=null && user[i].phonenumber1.includes(req.body.phonenumber) || req.body.phonenumber!='' && user[i].phonenumber2!=null && user[i].phonenumber2.includes(req.body.phonenumber)){
-      let unpaid = unpaidMoneyDate(user[i], date);
-      if(unpaid!=0){
-        let temp = {
-          registrationID: user[i].registrationID,
-          username: user[i].username,
-          phonenumber1: user[i].phonenumber1,
-          phonenumber2: user[i].phonenumber2,
-          agentcode: user[i].agentcode,
-          execuitivecode: user[i].execuitivecode,
-          pending: unpaid
-        };
-        result.push(temp)
-      }
-    }
-    else if(req.body.registrationID=='' && req.body.username=='' && 
-      req.body.execuitivecode=='' && req.body.agentcode=='' && req.body.phonenumber==''){
-      let unpaid = unpaidMoneyDate(user[i], date);
-      if(unpaid!=0){
-        let temp = {
-          registrationID: user[i].registrationID,
-          username: user[i].username,
-          phonenumber1: user[i].phonenumber1,
-          phonenumber2: user[i].phonenumber2,
-          agentcode: user[i].agentcode,
-          execuitivecode: user[i].execuitivecode,
-          pending: unpaid
-        };
-        result.push(temp);
-      }
+    let unpaid = unpaidMoneyDate(user[i], date);
+    if(unpaid!=0){
+      let temp = {
+        registrationID: user[i].registrationID,
+        username: user[i].username,
+        phonenumber1: user[i].phonenumber1,
+        phonenumber2: user[i].phonenumber2,
+        agentcode: user[i].agentcode,
+        execuitivecode: user[i].execuitivecode,
+        pending: unpaid
+      };
+      result.push(temp)
     }
   }
   var temp = {
@@ -800,12 +794,26 @@ app.post('/report', Authenticated, async (req, res) => {
   };
   const season = await Season.find({});
   const size = season.length;
-  var user = await SchemUser.find({seasonnumber: req.session.user.seasonnumber}).sort({ registrationID: 1 }); 
   var temp = getTime();
   var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   if(req.body.date!=''){
     date = req.body.date
   }
+  var search = [];
+  search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
+  if(req.body.phonenumber!=''){
+    search.push({ $or: [{phonenumber1: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber },
+      {phonenumber2: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber }
+    ]});
+  }
+  if(req.body.agentcode!=''){
+    search.push({ agentcode: { $regex: req.body.agentcode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  if(req.body.execuitivecode!=''){
+    search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  var user = await SchemUser.find({$and: search}).sort({ registrationID: 1 });
   var result = []
   var pending = []
   var length = 0
@@ -813,22 +821,10 @@ app.post('/report', Authenticated, async (req, res) => {
     length = user.length
   }
   for(let i=0;i<length;i=i+1){
-    if( req.body.registrationID!='' && user[i].registrationID.includes(req.body.registrationID) || req.body.username!='' && user[i].username.includes(req.body.username) ||
-    req.body.execuitivecode!='' && user[i].execuitivecode!=null && user[i].execuitivecode.includes(req.body.execuitivecode) || req.body.agentcode!='' && user[i].agentcode!=null && user[i].agentcode.includes(req.body.agentcode)
-    || req.body.phonenumber!='' && user[i].phonenumber1!=null && user[i].phonenumber1.includes(req.body.phonenumber) || req.body.phonenumber!='' && user[i].phonenumber2!=null && user[i].phonenumber2.includes(req.body.phonenumber)){
-      let unpaid = unpaidMoneyDate(user[i], date);
-      if(unpaid!=0){
-        result.push(user[i])
-        pending.push(unpaid)
-      }
-    }
-    else if(req.body.registrationID=='' && req.body.username=='' && 
-      req.body.execuitivecode=='' && req.body.agentcode=='' && req.body.phonenumber==''){
-      let unpaid = unpaidMoneyDate(user[i], date);
-      if(unpaid!=0){
-        result.push(user[i])
-        pending.push(unpaid)
-      }
+    let unpaid = unpaidMoneyDate(user[i], date);
+    if(unpaid!=0){
+      result.push(user[i])
+      pending.push(unpaid)
     }
   }
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
