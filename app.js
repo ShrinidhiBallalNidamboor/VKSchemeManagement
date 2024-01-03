@@ -892,20 +892,21 @@ app.post('/statusdata', Authenticated, async (req, res) => {
 });
 
 
-// Add the member into collection
+// Add the member page
 app.get('/addMember', Authenticated, (req, res) => {
   res.render("src/Forms/addMember", {username:req.session.user.username, role: req.session.user.role});
 });
-// Add the agent into collection
+// Add the agent page
 app.get('/addAgent', Authenticated, (req, res) => {
   res.render("src/Forms/addAgent", {username:req.session.user.username, role: req.session.user.role});
 });
-// Add the executive into collection
+// Add the executive page
 app.get('/addExecuitive', Authenticated, (req, res) => {
   res.render("src/Forms/addExecuitive", {username:req.session.user.username, role: req.session.user.role});
 });
 
 
+// Update transactions of the member
 app.post('/transactionMember', Authenticated, async (req, res) => {
   for(let i=0;i<req.body.transactionArray.length;i++){
     if(req.body.paidArray[i]=='0'){
@@ -964,7 +965,7 @@ app.post('/transactionMember', Authenticated, async (req, res) => {
   await SchemUser.findOneAndUpdate({_id: req.body.identifier}, update, {new: true,upsert: true});
   res.redirect("/reportSuccess")
 });
-
+// Update the transactions of the member
 app.post('/transactionSubscriberMember', Authenticated, async (req, res) => {
   for(let i=0;i<req.body.transactionArray.length;i++){
     if(req.body.paidArray[i]=='0'){
@@ -1023,7 +1024,7 @@ app.post('/transactionSubscriberMember', Authenticated, async (req, res) => {
   await SchemUser.findOneAndUpdate({_id: req.body.identifier}, update, {new: true,upsert: true});
   res.redirect("/viewSuccess")
 });
-
+// Update the member into collection
 app.post('/updateMember', Authenticated, async (req, res) => {
   var temp = getTime();
   const date = String(temp[2]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[0]).padStart(2, '0');
@@ -1048,7 +1049,7 @@ app.post('/updateMember', Authenticated, async (req, res) => {
   await SchemUser.findOneAndUpdate({registrationID: req.body.registrationID}, update, {new: true,upsert: true});
   res.redirect("/viewSuccess");
 });
-
+// Update the agent into collection
 app.post('/updateAgent', Authenticated, async (req, res) => {
   var update = {
       username: req.body.username,
@@ -1057,7 +1058,7 @@ app.post('/updateAgent', Authenticated, async (req, res) => {
   await Agent.findOneAndUpdate({agentcode: req.body.agentcode}, update, {new: true,upsert: true});
   res.redirect("/agentSuccess");
 });
-
+// Update the executive into collection
 app.post('/updateExecuitive', Authenticated, async (req, res) => {
   var update = {
       username: req.body.username,
@@ -1067,6 +1068,8 @@ app.post('/updateExecuitive', Authenticated, async (req, res) => {
   res.redirect("/execuitiveSuccess");
 });
 
+
+// Add the member into collection
 app.post('/addMember', Authenticated, async (req, res) => {
   const user = await SchemUser.findOne({registrationID: req.body.registrationID});
   if(user!=null){
@@ -1126,7 +1129,7 @@ app.post('/addMember', Authenticated, async (req, res) => {
   }
   }
 });
-
+// Add the agent into collection
 app.post('/addAgent', Authenticated, async (req, res) => {
   const user = await Agent.findOne({agentcode: req.body.agentcode});
   if(user!=null){
@@ -1142,7 +1145,7 @@ app.post('/addAgent', Authenticated, async (req, res) => {
     res.redirect("/agentSuccess");
   }
 });
-
+// Add the executive into collection
 app.post('/addExecuitive', Authenticated, async (req, res) => {
   const user = await Execuitive.findOne({execuitivecode: req.body.execuitivecode});
   if(user!=null){
@@ -1158,7 +1161,7 @@ app.post('/addExecuitive', Authenticated, async (req, res) => {
     res.redirect("/execuitiveSuccess");
   }
 });
-
+// Update the member status into collection
 app.post('/statusMember', Authenticated, async (req, res) => {
   const user = await SchemUser.findOne({ registrationID: req.body.registrationID });
   var update;
@@ -1189,6 +1192,7 @@ app.post('/statusMember', Authenticated, async (req, res) => {
 });
 
 
+// All the following code is used for the signup and login processes
 app.get("/login", function (req, res) {
     res.render("login");
 });
@@ -1206,6 +1210,7 @@ app.post('/login', async (req, res) => {
     // Store user information in session
     isValidPassword = await bcrypt.compare(password, user.password);
     if(isValidPassword){
+      // Include the session information
       const season = await Season.find({});
       const temp = {
         username: user.username,
