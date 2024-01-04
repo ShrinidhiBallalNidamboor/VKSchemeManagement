@@ -9,6 +9,7 @@ const fs = require('fs');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const csv = require('csv-parser');
 const bcrypt = require('bcryptjs');
+const pageSize = 100; // Set the number of items per page
 
 /*This requires the npm package called the mongoose that as the driver 
 or the intration of the mongoDB with node js.*/
@@ -189,26 +190,6 @@ async function insertTransactionID(transactionArray){
 };
 
 // Find the unpaid money for the given user
-function unpaidMoney(user){
-  let size = user.paidArray.length;
-  let unpaid = 0;
-  for(let j=0;j<size;j=j+1){
-    unpaid += user.unpaidArray[j];
-  }
-  return unpaid;
-};
-
-// Find the paid money for the given user
-function paidMoney(user){
-  let size = user.paidArray.length;
-  let paid = 0;
-  for(let j=0;j<size;j=j+1){
-    paid += user.paidArray[j];
-  }
-  return paid;
-};
-
-// Find the unpaid money for the given user
 function unpaidMoneyDate(user, date){
   let size = user.paidArray.length;
   let unpaid = 0;
@@ -269,42 +250,52 @@ function arrayToCsvSubscriber(arrayData, months) {
 
 // Get the graph data (pie chart and the point graph) for the given set of users who belong to the given season 
 async function graphData(seasonnumber) {
-  const user = await SchemUser.find({seasonnumber: seasonnumber}).select('seasonnumber paidArray unpaidArray agentcode');
+  const paid = await SchemUser.aggregate([
+    {$match: {seasonnumber: seasonnumber}},
+    {$unwind: '$paidArray'},
+    {$group: 
+      {_id: '$agentcode', 
+      paid: { $sum: '$paidArray'}
+    }}
+  ]).sort({_id: 1});
+  const unpaid = await SchemUser.aggregate([
+    {$match: {seasonnumber: seasonnumber}},
+    {$unwind: '$unpaidArray'},
+    {$group: 
+      {_id: '$agentcode', 
+      unpaid: { $sum: '$unpaidArray'}
+    }}
+  ]).sort({_id: 1});
+  const count = await SchemUser.aggregate([
+    {$match: {seasonnumber: seasonnumber}},
+    {$group: 
+      {_id: '$agentcode', 
+      count: { $sum: 1}
+    }}
+  ]).sort({_id: 1});
+
   var result = {paid: 0, unpaid: 0, length: 0, size: 0,
     xValues: [], dataset1: [], dataset2: []
   };
-  if(user!=null){
-    result.length=user.length;
-  }
-  var agentAmount = {};
-  var agentCount = {};
-  for(let i=0;i<result.length;i=i+1){
-    if(user[i].agentcode!=null){
-      agentAmount[user[i].agentcode]=0;
-      agentCount[user[i].agentcode]=0;
-      result.size += 1;
-    }
-  }
+  result.length = await SchemUser.countDocuments({seasonnumber: seasonnumber});
+  result.size = paid.length - 1;
+
   // Find all the agent codes of the scheme users and then find the amount of money that each agent has brought
-  for(let i=0;i<result.length;i=i+1){
-    let tempPaid = paidMoney(user[i]);
-    let tempUnpaid = unpaidMoney(user[i]);
-    result.paid += tempPaid;
-    result.unpaid += tempUnpaid;
-    if(user[i].agentcode!=null){
-      agentAmount[user[i].agentcode] += tempPaid;
-      agentCount[user[i].agentcode] += 1;
+  for(let i=0;i<=result.size;i=i+1){
+    if(paid[i]._id!=null){
+      result.xValues.push(paid[i]._id);
+      result.dataset1.push(paid[i].paid);
+      result.paid += paid[i].paid;
     }
   }
-  for (let key in agentAmount) {
-    if (agentAmount.hasOwnProperty(key)) {
-      result.xValues.push(key)
-      result.dataset1.push(agentAmount[key])
+  for(let i=0;i<=result.size;i=i+1){
+    if(unpaid[i]._id!=null){
+      result.unpaid += unpaid[i].unpaid;
     }
   }
-  for (let key in agentCount) {
-    if (agentCount.hasOwnProperty(key)) {
-      result.dataset2.push(agentCount[key])
+  for(let i=0;i<=result.size;i=i+1){
+    if(count[i]._id!=null){
+      result.dataset2.push(count[i].count);
     }
   }
   return result;
@@ -323,7 +314,7 @@ app.get('/', Authenticated, async (req, res) => {
 
 // Take the season number as the input from the user
 app.post('/season', Authenticated, async (req, res) => {
-  req.session.user.seasonnumber = req.body.seasonnumber;
+  req.session.user.seasonnumber = Number(req.body.seasonnumber);
   res.redirect("/");
 });
 
@@ -582,9 +573,16 @@ app.get('/view', Authenticated, async (req, res) => {
     execuitivecode: ''
   };
   const season =  await Season.find({});
-  const user = await SchemUser.find({seasonnumber: req.session.user.seasonnumber, status: "ACTIVE"}).select('_id registrationID username phonenumber1 phonenumber2 agentcode execuitivecode status').sort({ registrationID: 1 });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {seasonnumber: req.session.user.seasonnumber, status: "ACTIVE"} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
   var message = "<div></div>"
-  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, condition: condition, seasonnumber: req.session.user.seasonnumber, size: season.length, message: message});
+  res.render("src/Tables/view", {username:req.session.user.username, 
+    role: req.session.user.role, user: user, condition: condition, 
+    seasonnumber: req.session.user.seasonnumber, size: season.length, message: message, page: page});
 });
 // Display the scheme subscribers as a table along with the success message
 app.get('/viewSuccess', Authenticated, async (req, res) => {
@@ -597,9 +595,16 @@ app.get('/viewSuccess', Authenticated, async (req, res) => {
     execuitivecode: ''
   };
   const season =  await Season.find({});
-  const user = await SchemUser.find({seasonnumber: req.session.user.seasonnumber, status: "ACTIVE"}).select('_id registrationID username phonenumber1 phonenumber2 agentcode execuitivecode status').sort({ registrationID: 1 });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {seasonnumber: req.session.user.seasonnumber, status: "ACTIVE"} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
   var message = success;
-  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, condition: condition, seasonnumber: req.session.user.seasonnumber, size: season.length, message: message});
+  res.render("src/Tables/view", {username:req.session.user.username, 
+    role: req.session.user.role, user: user, condition: condition, 
+    seasonnumber: req.session.user.seasonnumber, size: season.length, message: message, page: page});
 });
 // Display the scheme subscribers as a table along with the failure message
 app.get('/viewFailure', Authenticated, async (req, res) => {
@@ -612,9 +617,16 @@ app.get('/viewFailure', Authenticated, async (req, res) => {
     execuitivecode: ''
   };
   const season =  await Season.find({});
-  const user = await SchemUser.find({seasonnumber: req.session.user.seasonnumber, status: "ACTIVE"}).select('_id registrationID username phonenumber1 phonenumber2 agentcode execuitivecode status').sort({ registrationID: 1 });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {seasonnumber: req.session.user.seasonnumber, status: "ACTIVE"} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
   var message = failure;
-  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, condition: condition, seasonnumber: req.session.user.seasonnumber, size: season.length, message: message});
+  res.render("src/Tables/view", {username:req.session.user.username, 
+    role: req.session.user.role, user: user, condition: condition, 
+    seasonnumber: req.session.user.seasonnumber, size: season.length, message: message, page: page});
 });
 
 
@@ -622,7 +634,12 @@ app.get('/viewFailure', Authenticated, async (req, res) => {
 app.get('/report', Authenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
-  const user = await SchemUser.find({seasonnumber: req.session.user.seasonnumber}).sort({ registrationID: 1 });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {seasonnumber: req.session.user.seasonnumber} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
   var message = "<div></div>";
   var temp = getTime();
   var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
@@ -647,13 +664,18 @@ app.get('/report', Authenticated, async (req, res) => {
     }
   }
   res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: req.session.user.seasonnumber, role: req.session.user.role,
-    message: message, pending: pending, condition: condition, size: size});
+    message: message, pending: pending, condition: condition, size: size, page: page});
 });
 // Display the scheme subscribers along with the pending information as a table with the success information
 app.get('/reportSuccess', Authenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
-  const user = await SchemUser.find({seasonnumber: req.session.user.seasonnumber}).sort({ registrationID: 1 });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {seasonnumber: req.session.user.seasonnumber} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
   var message = success;
   var temp = getTime();
   var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
@@ -678,13 +700,18 @@ app.get('/reportSuccess', Authenticated, async (req, res) => {
     }
   }
   res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: req.session.user.seasonnumber, role: req.session.user.role,
-    message: message, pending:pending, condition: condition, size: size});
+    message: message, pending:pending, condition: condition, size: size, page: page});
 });
 // Display the scheme subscribers along with the pending information as a table with the failure information
 app.get('/reportFailure', Authenticated, async (req, res) => {
   const season = await Season.find({});
   const size = season.length;
-  const user = await SchemUser.find({seasonnumber: req.session.user.seasonnumber}).sort({ registrationID: 1 });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {seasonnumber: req.session.user.seasonnumber} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
   var message = failure;
   var temp = getTime();
   var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
@@ -709,7 +736,7 @@ app.get('/reportFailure', Authenticated, async (req, res) => {
     }
   }
   res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: req.session.user.seasonnumber, role: req.session.user.role,
-    message: message, pending: pending, condition: condition, size: size});
+    message: message, pending: pending, condition: condition, size: size, page: page});
 });
 
 
@@ -763,6 +790,7 @@ app.post('/view', Authenticated, async (req, res) => {
     agentcode: req.body.agentcode,
     execuitivecode: req.body.execuitivecode
   };
+  console.log(req.body.page);
   var search = [];
   search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
   search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
@@ -778,12 +806,139 @@ app.post('/view', Authenticated, async (req, res) => {
     search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
   }
   search.push({ status: req.body.status, seasonnumber: req.session.user.seasonnumber });
-  var user = await SchemUser.find({$and: search}).sort({ registrationID: 1 });
+  const page = Number(req.body.page);
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
   const season = await Season.find({});
-  res.render("src/Tables/view", {username:req.session.user.username, role: req.session.user.role, user: user, seasonnumber: req.session.user.seasonnumber, condition: condition, size: season.length, message: "<div></div>"});
+  res.render("src/Tables/view", {username:req.session.user.username, 
+    role: req.session.user.role, user: user, seasonnumber: req.session.user.seasonnumber, 
+    condition: condition, size: season.length, message: "<div></div>", page: page});
+});
+app.post('/viewPrev', Authenticated, async (req, res) => {
+  var condition = {
+    username: req.body.username,
+    registrationID: req.body.registrationID,
+    phonenumber: req.body.phonenumber,
+    status: req.body.status,
+    agentcode: req.body.agentcode,
+    execuitivecode: req.body.execuitivecode
+  };
+  console.log(req.body.page);
+  var search = [];
+  search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
+  if(req.body.phonenumber!=''){
+    search.push({ $or: [{phonenumber1: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber },
+      {phonenumber2: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber }
+    ]});
+  }
+  if(req.body.agentcode!=''){
+    search.push({ agentcode: { $regex: req.body.agentcode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  if(req.body.execuitivecode!=''){
+    search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  search.push({ status: req.body.status, seasonnumber: req.session.user.seasonnumber });
+  const page = Number(req.body.page)-1;
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
+  const season = await Season.find({});
+  res.render("src/Tables/view", {username:req.session.user.username, 
+    role: req.session.user.role, user: user, seasonnumber: req.session.user.seasonnumber, 
+    condition: condition, size: season.length, message: "<div></div>", page: page});
+});
+app.post('/viewNext', Authenticated, async (req, res) => {
+  var condition = {
+    username: req.body.username,
+    registrationID: req.body.registrationID,
+    phonenumber: req.body.phonenumber,
+    status: req.body.status,
+    agentcode: req.body.agentcode,
+    execuitivecode: req.body.execuitivecode
+  };
+  console.log(req.body.page);
+  var search = [];
+  search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
+  if(req.body.phonenumber!=''){
+    search.push({ $or: [{phonenumber1: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber },
+      {phonenumber2: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber }
+    ]});
+  }
+  if(req.body.agentcode!=''){
+    search.push({ agentcode: { $regex: req.body.agentcode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  if(req.body.execuitivecode!=''){
+    search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  search.push({ status: req.body.status, seasonnumber: req.session.user.seasonnumber });
+  const page = Number(req.body.page)+1;
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 });
+  const season = await Season.find({});
+  res.render("src/Tables/view", {username:req.session.user.username, 
+    role: req.session.user.role, user: user, seasonnumber: req.session.user.seasonnumber, 
+    condition: condition, size: season.length, message: "<div></div>", page: page});
 });
 // Display filtered the scheme user including the pending amount data
 app.post('/report', Authenticated, async (req, res) => {
+  var condition = {
+    date: req.body.date,
+    username: req.body.username,
+    registrationID: req.body.registrationID,
+    agentcode: req.body.agentcode,
+    phonenumber: req.body.phonenumber,
+    execuitivecode: req.body.execuitivecode
+  };
+  const season = await Season.find({});
+  const size = season.length;
+  var date = req.body.date
+  var search = [];
+  search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
+  if(req.body.phonenumber!=''){
+    search.push({ $or: [{phonenumber1: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber },
+      {phonenumber2: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber }
+    ]});
+  }
+  if(req.body.agentcode!=''){
+    search.push({ agentcode: { $regex: req.body.agentcode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  if(req.body.execuitivecode!=''){
+    search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  const page = Number(req.body.page);
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 })
+  var result = []
+  var pending = []
+  var length = 0
+  if(user!=null){
+    length = user.length
+  }
+  for(let i=0;i<length;i=i+1){
+    let unpaid = unpaidMoneyDate(user[i], date);
+    if(unpaid!=0){
+      result.push(user[i])
+      pending.push(unpaid)
+    }
+  }
+  res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
+    message: "<div></div>", pending: pending, condition: condition, size: size, page: page});
+});
+app.post('/reportPrev', Authenticated, async (req, res) => {
   var condition = {
     date: req.body.date,
     username: req.body.username,
@@ -813,7 +968,12 @@ app.post('/report', Authenticated, async (req, res) => {
   if(req.body.execuitivecode!=''){
     search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
   }
-  var user = await SchemUser.find({$and: search}).sort({ registrationID: 1 });
+  const page = Number(req.body.page)-1;
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 })
   var result = []
   var pending = []
   var length = 0
@@ -828,7 +988,59 @@ app.post('/report', Authenticated, async (req, res) => {
     }
   }
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
-    message: "<div></div>", pending: pending, condition: condition, size: size});
+    message: "<div></div>", pending: pending, condition: condition, size: size, page: page});
+});
+app.post('/reportNext', Authenticated, async (req, res) => {
+  var condition = {
+    date: req.body.date,
+    username: req.body.username,
+    registrationID: req.body.registrationID,
+    agentcode: req.body.agentcode,
+    phonenumber: req.body.phonenumber,
+    execuitivecode: req.body.execuitivecode
+  };
+  const season = await Season.find({});
+  const size = season.length;
+  var temp = getTime();
+  var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
+  if(req.body.date!=''){
+    date = req.body.date
+  }
+  var search = [];
+  search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
+  if(req.body.phonenumber!=''){
+    search.push({ $or: [{phonenumber1: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber },
+      {phonenumber2: { $regex: req.body.phonenumber}, seasonnumber: req.session.user.seasonnumber }
+    ]});
+  }
+  if(req.body.agentcode!=''){
+    search.push({ agentcode: { $regex: req.body.agentcode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  if(req.body.execuitivecode!=''){
+    search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
+  }
+  const page = Number(req.body.page)+1;
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 })
+  var result = []
+  var pending = []
+  var length = 0
+  if(user!=null){
+    length = user.length
+  }
+  for(let i=0;i<length;i=i+1){
+    let unpaid = unpaidMoneyDate(user[i], date);
+    if(unpaid!=0){
+      result.push(user[i])
+      pending.push(unpaid)
+    }
+  }
+  res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
+    message: "<div></div>", pending: pending, condition: condition, size: size, page: page});
 });
 // Display filtered the agent data
 app.post('/agent', Authenticated, async (req, res) => {

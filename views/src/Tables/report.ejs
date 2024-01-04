@@ -12,6 +12,7 @@
                   <h4 class="card-title">Filter Subscribers</h4>
                   <div class="table-responsive">
                     <form action="/report" method="POST">
+                    <input style="display: None;" id="page" name="page" value="<%-page%>"/>
                     <table class="table table-striped">
                       <thead>
                         <tr>
@@ -85,6 +86,33 @@
                     <div>
                       <p class="statistics-title">Total Members</p>
                       <h3 class="rate-percentage"><%-user.length%></h3>
+                      <br>
+                      <%if(page!=1){%>
+                      <form action="/reportPrev" method="POST" style="display: inline-block;">
+                        <input style="display: None;" id="page" name="page" value="<%-page%>"/>
+                        <input style="display: None;" name="seasonnumber" value="<%-seasonnumber%>"/>
+                        <input style="display: None;" name="phonenumber" value="<%-condition.phonenumber%>"/>
+                        <input style="display: None;" name="date" value="<%-condition.date%>"/>
+                        <input style="display: None;" name="username" value="<%-condition.username%>"/>
+                        <input style="display: None;" name="registrationID" value="<%-condition.registrationID%>"/>
+                        <input style="display: None;" name="agentcode" value="<%-condition.agentcode%>"/>
+                        <input style="display: None;" name="execuitivecode" value="<%-condition.execuitivecode%>"/>
+                        <button type="submit" class="btn btn-danger">Prev</button>
+                      </form>
+                      <%}%>
+                      <%if(user.length!=0){%>
+                      <form action="/reportNext" method="POST" style="display: inline-block;">
+                        <input style="display: None;" id="page" name="page" value="<%-page%>"/>
+                        <input style="display: None;" name="seasonnumber" value="<%-seasonnumber%>"/>
+                        <input style="display: None;" name="phonenumber" value="<%-condition.phonenumber%>"/>
+                        <input style="display: None;" name="date" value="<%-condition.date%>"/>
+                        <input style="display: None;" name="username" value="<%-condition.username%>"/>
+                        <input style="display: None;" name="registrationID" value="<%-condition.registrationID%>"/>
+                        <input style="display: None;" name="agentcode" value="<%-condition.agentcode%>"/>
+                        <input style="display: None;" name="execuitivecode" value="<%-condition.execuitivecode%>"/>
+                        <button type="submit" class="btn btn-danger">Next</button>
+                      </form>
+                      <%}%>
                     </div>
                     <table class="table table-striped">
                       <thead>
