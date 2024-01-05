@@ -99,8 +99,11 @@
                 <div class="card-body">
                   <h4 class="card-title">Scheme Subscribers</h4>
                   <div class="table-responsive">
-                    <div class="btn-wrapper">
-                    <%if(page!=1){%>
+                  <div class="btn-wrapper">
+                  <p class="statistics-title">Total Members</p>
+                  <h3 class="rate-percentage"><%-user.length%></h3>
+                  <br>
+                  <%if(page!=1){%>
                     <form action="/viewPrev" method="POST" style="display: inline-block;">
                         <input style="display: None;" id="page" name="page" value="<%-page%>"/>
                         <input style="display: None;" name="seasonnumber" value="<%-seasonnumber%>"/>
