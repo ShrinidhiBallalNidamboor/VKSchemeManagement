@@ -648,11 +648,7 @@ app.get('/report', Authenticated, async (req, res) => {
   search.push({ registrationID: { $regex: condition.registrationID}, seasonnumber: req.session.user.seasonnumber });
   search.push({ username: { $regex: condition.username}, seasonnumber: req.session.user.seasonnumber });
   const page = 1;
-  const user = await SchemUser.aggregate([
-    { $match: {$and: search} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 })
+  var user = await SchemUser.find({$and: search}).sort({registrationID: 1});
   var result = []
   var pending = []
   var length = 0
@@ -666,6 +662,9 @@ app.get('/report', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
+  const startIndex = (page-1)*pageSize;
+  result = result.slice(startIndex, startIndex+pageSize);
+  pending = pending.slice(startIndex, startIndex+pageSize);
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
     message: "<div></div>", pending: pending, condition: condition, size: size, page: page});
 });
@@ -687,11 +686,7 @@ app.get('/reportSuccess', Authenticated, async (req, res) => {
   search.push({ registrationID: { $regex: condition.registrationID}, seasonnumber: req.session.user.seasonnumber });
   search.push({ username: { $regex: condition.username}, seasonnumber: req.session.user.seasonnumber });
   const page = 1;
-  const user = await SchemUser.aggregate([
-    { $match: {$and: search} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 })
+  var user = await SchemUser.find({$and: search}).sort({registrationID: 1});
   var result = []
   var pending = []
   var length = 0
@@ -705,6 +700,9 @@ app.get('/reportSuccess', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
+  const startIndex = (page-1)*pageSize;
+  result = result.slice(startIndex, startIndex+pageSize);
+  pending = pending.slice(startIndex, startIndex+pageSize);
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
     message: success, pending: pending, condition: condition, size: size, page: page});
 });
@@ -726,11 +724,7 @@ app.get('/reportFailure', Authenticated, async (req, res) => {
   search.push({ registrationID: { $regex: condition.registrationID}, seasonnumber: req.session.user.seasonnumber });
   search.push({ username: { $regex: condition.username}, seasonnumber: req.session.user.seasonnumber });
   const page = 1;
-  const user = await SchemUser.aggregate([
-    { $match: {$and: search} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 })
+  var user = await SchemUser.find({$and: search}).sort({registrationID: 1});
   var result = []
   var pending = []
   var length = 0
@@ -744,6 +738,9 @@ app.get('/reportFailure', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
+  const startIndex = (page-1)*pageSize;
+  result = result.slice(startIndex, startIndex+pageSize);
+  pending = pending.slice(startIndex, startIndex+pageSize);
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
     message: failure, pending: pending, condition: condition, size: size, page: page});
 });
@@ -926,11 +923,7 @@ app.post('/report', Authenticated, async (req, res) => {
     search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
   }
   const page = Number(req.body.page);
-  const user = await SchemUser.aggregate([
-    { $match: {$and: search} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 })
+  var user = await SchemUser.find({$and: search}).sort({registrationID: 1});
   var result = []
   var pending = []
   var length = 0
@@ -944,6 +937,9 @@ app.post('/report', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
+  const startIndex = (page-1)*pageSize;
+  result = result.slice(startIndex, startIndex+pageSize);
+  pending = pending.slice(startIndex, startIndex+pageSize);
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
     message: "<div></div>", pending: pending, condition: condition, size: size, page: page});
 });
@@ -958,11 +954,7 @@ app.post('/reportPrev', Authenticated, async (req, res) => {
   };
   const season = await Season.find({});
   const size = season.length;
-  var temp = getTime();
-  var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
-  if(req.body.date!=''){
-    date = req.body.date
-  }
+  var date = req.body.date
   var search = [];
   search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
   search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
@@ -978,11 +970,7 @@ app.post('/reportPrev', Authenticated, async (req, res) => {
     search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
   }
   const page = Number(req.body.page)-1;
-  const user = await SchemUser.aggregate([
-    { $match: {$and: search} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 })
+  var user = await SchemUser.find({$and: search}).sort({registrationID: 1});
   var result = []
   var pending = []
   var length = 0
@@ -996,6 +984,9 @@ app.post('/reportPrev', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
+  const startIndex = (page-1)*pageSize;
+  result = result.slice(startIndex, startIndex+pageSize);
+  pending = pending.slice(startIndex, startIndex+pageSize);
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
     message: "<div></div>", pending: pending, condition: condition, size: size, page: page});
 });
@@ -1010,11 +1001,7 @@ app.post('/reportNext', Authenticated, async (req, res) => {
   };
   const season = await Season.find({});
   const size = season.length;
-  var temp = getTime();
-  var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
-  if(req.body.date!=''){
-    date = req.body.date
-  }
+  var date = req.body.date
   var search = [];
   search.push({ registrationID: { $regex: req.body.registrationID}, seasonnumber: req.session.user.seasonnumber });
   search.push({ username: { $regex: req.body.username}, seasonnumber: req.session.user.seasonnumber });
@@ -1030,11 +1017,7 @@ app.post('/reportNext', Authenticated, async (req, res) => {
     search.push({ execuitivecode: { $regex: req.body.execuitivecode}, seasonnumber: req.session.user.seasonnumber });
   }
   const page = Number(req.body.page)+1;
-  const user = await SchemUser.aggregate([
-    { $match: {$and: search} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 })
+  var user = await SchemUser.find({$and: search}).sort({registrationID: 1});
   var result = []
   var pending = []
   var length = 0
@@ -1048,6 +1031,9 @@ app.post('/reportNext', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
+  const startIndex = (page-1)*pageSize;
+  result = result.slice(startIndex, startIndex+pageSize);
+  pending = pending.slice(startIndex, startIndex+pageSize);
   res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
     message: "<div></div>", pending: pending, condition: condition, size: size, page: page});
 });
