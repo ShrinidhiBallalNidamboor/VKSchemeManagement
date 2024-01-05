@@ -632,15 +632,6 @@ app.get('/viewFailure', Authenticated, async (req, res) => {
 
 // Display the scheme subscribers along with the pending information as a table 
 app.get('/report', Authenticated, async (req, res) => {
-  const season = await Season.find({});
-  const size = season.length;
-  const page = 1;
-  const user = await SchemUser.aggregate([
-    { $match: {seasonnumber: req.session.user.seasonnumber} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 });
-  var message = "<div></div>";
   var temp = getTime();
   var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   var condition = {
@@ -648,8 +639,20 @@ app.get('/report', Authenticated, async (req, res) => {
     username: '',
     registrationID: '',
     agentcode: '',
+    phonenumber: '',
     execuitivecode: ''
   };
+  const season = await Season.find({});
+  const size = season.length;
+  var search = [];
+  search.push({ registrationID: { $regex: condition.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: condition.username}, seasonnumber: req.session.user.seasonnumber });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 })
   var result = []
   var pending = []
   var length = 0
@@ -663,20 +666,11 @@ app.get('/report', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: req.session.user.seasonnumber, role: req.session.user.role,
-    message: message, pending: pending, condition: condition, size: size, page: page});
+  res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
+    message: "<div></div>", pending: pending, condition: condition, size: size, page: page});
 });
 // Display the scheme subscribers along with the pending information as a table with the success information
 app.get('/reportSuccess', Authenticated, async (req, res) => {
-  const season = await Season.find({});
-  const size = season.length;
-  const page = 1;
-  const user = await SchemUser.aggregate([
-    { $match: {seasonnumber: req.session.user.seasonnumber} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 });
-  var message = success;
   var temp = getTime();
   var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   var condition = {
@@ -684,8 +678,20 @@ app.get('/reportSuccess', Authenticated, async (req, res) => {
     username: '',
     registrationID: '',
     agentcode: '',
+    phonenumber: '',
     execuitivecode: ''
   };
+  const season = await Season.find({});
+  const size = season.length;
+  var search = [];
+  search.push({ registrationID: { $regex: condition.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: condition.username}, seasonnumber: req.session.user.seasonnumber });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 })
   var result = []
   var pending = []
   var length = 0
@@ -699,20 +705,11 @@ app.get('/reportSuccess', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: req.session.user.seasonnumber, role: req.session.user.role,
-    message: message, pending:pending, condition: condition, size: size, page: page});
+  res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
+    message: success, pending: pending, condition: condition, size: size, page: page});
 });
 // Display the scheme subscribers along with the pending information as a table with the failure information
 app.get('/reportFailure', Authenticated, async (req, res) => {
-  const season = await Season.find({});
-  const size = season.length;
-  const page = 1;
-  const user = await SchemUser.aggregate([
-    { $match: {seasonnumber: req.session.user.seasonnumber} },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize },
-  ]).sort({ registrationID: 1 });
-  var message = failure;
   var temp = getTime();
   var date = String(temp[0]).padStart(2, '0')+"-"+String(temp[1]).padStart(2, '0')+"-"+String(temp[2]).padStart(2, '0');
   var condition = {
@@ -720,8 +717,20 @@ app.get('/reportFailure', Authenticated, async (req, res) => {
     username: '',
     registrationID: '',
     agentcode: '',
+    phonenumber: '',
     execuitivecode: ''
   };
+  const season = await Season.find({});
+  const size = season.length;
+  var search = [];
+  search.push({ registrationID: { $regex: condition.registrationID}, seasonnumber: req.session.user.seasonnumber });
+  search.push({ username: { $regex: condition.username}, seasonnumber: req.session.user.seasonnumber });
+  const page = 1;
+  const user = await SchemUser.aggregate([
+    { $match: {$and: search} },
+    { $skip: (page - 1) * pageSize },
+    { $limit: pageSize },
+  ]).sort({ registrationID: 1 })
   var result = []
   var pending = []
   var length = 0
@@ -735,8 +744,8 @@ app.get('/reportFailure', Authenticated, async (req, res) => {
       pending.push(unpaid)
     }
   }
-  res.render("src/Tables/report", {username:req.session.user.username, user: result, seasonnumber: req.session.user.seasonnumber, role: req.session.user.role,
-    message: message, pending: pending, condition: condition, size: size, page: page});
+  res.render("src/Tables/report", {username:req.session.user.username, role: req.session.user.role, user: result, seasonnumber: req.session.user.seasonnumber,
+    message: failure, pending: pending, condition: condition, size: size, page: page});
 });
 
 

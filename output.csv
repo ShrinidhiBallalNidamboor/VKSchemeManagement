@@ -1,8 +1,2 @@
-registrationID,username,phonenumber1,phonenumber2,agentcode,execuitivecode,pending
-A005,Bangarappa Vedam,9901231238,,AG005,EX005,1500
-B001,Vageesh Acharya B,9901231239,,AG006,EX006,1500
-B002,Vinayaka R,9901231240,,AG007,EX007,3000
-B003,Kabbanale Bharadwaj,9901231241,9901231251,,EX008,1500
-B004,Binkar Jenkaar,9901231242,,,EX009,1500
-B005,Kawadi Satvekar Pindi,9901231243,,,,3000
-Last Date,2024-02-03,,,,,
+username,phonenumber1,phonenumber2,registrationID,status,statusdate,seasonnumber,agentcode,execuitivecode,1 Payment Date,1 Transaction ID,1 Paid,2 Payment Date,2 Transaction ID,2 Paid,3 Payment Date,3 Transaction ID,3 Paid,4 Payment Date,4 Transaction ID,4 Paid,5 Payment Date,5 Transaction ID,5 Paid,6 Payment Date,6 Transaction ID,6 Paid
+Harimurthy,9901231236,,A008,ACTIVE,,1,AG0001,,,,,,,,,,,,,,,,,,,
